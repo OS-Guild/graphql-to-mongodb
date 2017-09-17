@@ -1,2 +1,7 @@
-node_modules
+.idea
+node_modules/
+lib/
+.history
+.idea
+.vscode/
 package-lock.json

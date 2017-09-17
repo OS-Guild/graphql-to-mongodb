@@ -1,10 +1,12 @@
 {
   "name": "graphql-to-mongodb-query",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Allows for generic generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-core/register --timeout 60000 --recursive tests/unit --show-server-logs"
+    "test": "mocha --compilers js:babel-core/register  --timeout 60000 --recursive tests/unit --show-server-logs",
+    "build": "babel src --out-dir lib",
+    "publish-now": "npm run build && npm publish"
   },
   "repository": {
     "type": "git",
@@ -24,7 +26,7 @@
     "babel-preset-import-export": "^1.0.2",
     "mocha": "^3.5.3"
   },
-  "dependencies": {
-    "graphql": "^0.11.3"
+  "peerDependencies": {
+    "graphql": "^0.10.0"
   }
 }
