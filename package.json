@@ -4,7 +4,7 @@
   "description": "Allows for generic generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha --compilers js:babel-core/register --timeout 60000 --recursive tests/unit --show-server-logs"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,14 @@
   },
   "homepage": "https://github.com/Soluto/graphql-to-mongodb-query#readme",
   "devDependencies": {
-    "babel-cli": "^6.26.0"
+    "assert": "^1.4.1",
+    "babel-cli": "^6.26.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-flow": "^6.23.0",
+    "babel-preset-import-export": "^1.0.2",
+    "mocha": "^3.5.3"
+  },
+  "dependencies": {
+    "graphql": "^0.11.3"
   }
 }

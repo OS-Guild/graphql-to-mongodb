@@ -1,0 +1,9 @@
+{
+    "presets": [
+      "import-export",
+      "flow"
+    ],
+    "plugins": [
+      "transform-object-rest-spread"
+    ]
+  }
