@@ -1,0 +1,22 @@
+{
+  "name": "graphql-to-mongodb-query",
+  "version": "1.0.0",
+  "description": "Allows for generic generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Soluto/graphql-to-mongodb-query.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Soluto/graphql-to-mongodb-query/issues"
+  },
+  "homepage": "https://github.com/Soluto/graphql-to-mongodb-query#readme",
+  "devDependencies": {
+    "babel-cli": "^6.26.0"
+  }
+}
