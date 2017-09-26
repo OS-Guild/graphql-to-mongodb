@@ -40,44 +40,44 @@ function setTypeSuffix(text, locate, replaceWith) {
         : `${text}${replaceWith}`;
 }
 
-function getGraphQLScalarInputType(graphQLScalarType, inArray) {
+function getGraphQLScalarInputFilterType(graphQLScalarType, inArray) {
     const typeName = graphQLScalarType.toString() + (inArray ? "InArray" : "") + "Input";
 
     if (!scalarInputTypesCache[typeName]) {
         scalarInputTypesCache[typeName] = new GraphQLInputObjectType({
             name: typeName,
             description: inArray ? "Filter operator currently limited only to EQL and IN" : "",
-            fields: getScalarInputTypeFields(graphQLScalarType, inArray)
+            fields: getScalarInputFilterTypeFields(graphQLScalarType, inArray)
         });
     }
 
     return scalarInputTypesCache[typeName];
 }
 
-function getScalarInputTypeFields(graphQLScalarType, inArray) {
+function getScalarInputFilterTypeFields(graphQLScalarType, inArray) {
     return () => ({
-        opr: { type: inArray ? OprEqType : OprType },
+        opr: { type: new GraphQLNonNull(inArray ? OprEqType : OprType) },
         value: { type: graphQLScalarType },
         values: { type: new GraphQLList(graphQLScalarType) }
     })
 }
 
-function getGraphQLInputType(graphQLType, isInArray, ...excludedFields) {
+function getGraphQLInputFilterType(graphQLType, isInArray, ...excludedFields) {
 
     if (graphQLType instanceof GraphQLScalarType) {
-        return getGraphQLScalarInputType(graphQLType, isInArray);
+        return getGraphQLScalarInputFilterType(graphQLType, isInArray);
     }
 
     if (graphQLType instanceof GraphQLNonNull) {
-        return getGraphQLInputType(graphQLType.ofType, isInArray);
+        return getGraphQLInputFilterType(graphQLType.ofType, isInArray);
     }
 
     if (graphQLType instanceof GraphQLList) {
-        return getGraphQLInputType(graphQLType.ofType, true);
+        return getGraphQLInputFilterType(graphQLType.ofType, true);
     }
 
     return new GraphQLInputObjectType({
-        name: setTypeSuffix(graphQLType.name, 'Type', 'InputType'),
+        name: setTypeSuffix(graphQLType.name, 'Type', 'InputFilterType'),
         fields: getInputObjectTypeFields(graphQLType, isInArray, ...excludedFields)
     });
 }
@@ -94,7 +94,7 @@ function getFields(graphQLType, isInArray, ...excludedFields) {
         Object.keys(typeFields)
             .filter(key => !excludedFields.includes(key))
             .filter(key => !typeFields[key].resolve)
-            .forEach(key => generatedFields[key] = { type: getGraphQLInputType(typeFields[key].type, isInArray) });
+            .forEach(key => generatedFields[key] = { type: getGraphQLInputFilterType(typeFields[key].type, isInArray) });
 
         return generatedFields;
     };

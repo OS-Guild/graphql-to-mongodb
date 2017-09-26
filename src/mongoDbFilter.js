@@ -36,7 +36,7 @@ function toMongoScalarFilter(object) {
     const mongoFieldFilter = {};
 
     if (["$in", "$nin"].includes(object.opr)) {
-        mongoFieldFilter[object.opr] = object.values;
+        mongoFieldFilter[object.opr] = object.values || [];
     } else {
         mongoFieldFilter[object.opr] = object.value;
     }
