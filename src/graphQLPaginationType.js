@@ -4,8 +4,7 @@ const GraphQLPaginationType = new GraphQLInputObjectType({
     name: "GraphQLPaginationType",
     fields: {
         limit: { type: GraphQLInt },
-        skip: { type: GraphQLInt },
-        internal: { type: GraphQLBoolean }
+        skip: { type: GraphQLInt }
     }
 });
 
