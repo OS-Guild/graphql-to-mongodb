@@ -82,6 +82,7 @@ OR: [PersonFilterType]
 AND: [PersonFilterType]
 ```
 \* Filtering is possilbe over every none resolve field!
+
 **NamInputeFilterType:**
 ```
 firstName: StringInput
