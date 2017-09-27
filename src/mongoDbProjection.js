@@ -12,8 +12,8 @@ function flattenProjection(fieldNode, graphQLType, path = [], ...excludedFields)
         .filter(field => {
             const name = getFieldName(field);
 
-            return !excludedFields.includes(getFieldName(field))
-                && !typeFields[getFieldName(field)].resolve;
+            return !excludedFields.includes(name)
+                && !typeFields[name].resolve;
         })
         .map(field => {
             const name = getFieldName(field);
@@ -106,6 +106,5 @@ function mergeProjectionAndResolveDependencies(projection, resolveDependencies) 
 
     return newProjection;
 }
-
 
 export default getMongoDbProjection

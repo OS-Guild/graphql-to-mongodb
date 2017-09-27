@@ -8,7 +8,7 @@ function getMongoDbUpdateResolver(updateCallback, queryCallback) {
         const filter = getMongoDbFilter(args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update)
         await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, obj, args, context, metadata);
-        return await queryCallback(filter, obj, args, context, metadata)
+        return queryCallback ? await queryCallback(filter, obj, args, context, metadata) : undefined;
     };
 }
 
