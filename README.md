@@ -62,7 +62,7 @@ The `filter`, `projection` and `options` added as the first paraneters of the ca
     ```
     OR
     ```js 
-    { fullName: ['name.firstName',`name.LastName`] }
+    { fullName: ['name.firstName','name.LastName'] }
     ```
     This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if comunication volume is of no concern, the projection can be replaced with an empty object
 
@@ -74,6 +74,7 @@ person(
     pagination: GraphQLPaginationType
 ): [PersonType]
 ```
+
 **PersonFilterType:**
 ```
 age: IntInput
@@ -90,6 +91,7 @@ lastName: StringInput
 opr: OprExists
 ```
 `OprExists` enum tyoe can be `EXISTS` or `NOT_EXISTS`, and can be found in nested objects and arrays
+
 **StringInput:**
 ```
 opr: Opr!

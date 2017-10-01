@@ -2,6 +2,7 @@ import { getGraphQLFilterType } from './graphQLFilterType'
 import { getGraphQLUpdateType } from './graphQLMutationType'
 import getMongoDbFilter from './mongoDbFilter'
 import getMongoDbUpdate from './mongoDbUpdate'
+import { GraphQLNonNull } from 'graphql'
 
 function getMongoDbUpdateResolver(updateCallback, queryCallback) {
     return async (obj, args, context, metadata) => {
@@ -14,8 +15,8 @@ function getMongoDbUpdateResolver(updateCallback, queryCallback) {
 
 function getGraphQLUpdateArgs(graphQLType) {
     return {
-        filter: { type: getGraphQLFilterType(graphQLType) },
-        update: { type: getGraphQLUpdateType(graphQLType) }
+        filter: { type: new GraphQLNonNull(getGraphQLFilterType(graphQLType)) },
+        update: { type: new GraphQLNonNull(getGraphQLUpdateType(graphQLType)) }
     };
 }
 
