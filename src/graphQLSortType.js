@@ -1,49 +1,39 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType } from 'graphql';
+import { cache, setSuffix, getTypeFields, getUnresolvedFields, clear } from './common';
 
 const sortTypesCache = {};
 
 function getGraphQLSortType(graphQLType, ...excludedFields) {
-    const sortTypeName = setTypeSuffix(graphQLType.name, 'Type', 'SortType');
-
-    if (!sortTypesCache[sortTypeName]) {
-        sortTypesCache[sortTypeName] = new GraphQLInputObjectType({
-            name: sortTypeName,
-            fields: getTypeScalarFields(graphQLType, () => SortType, ...excludedFields)
-        });
+    if (graphQLType instanceof GraphQLScalarType) {
+        return SortType;
     }
 
-    return sortTypesCache[sortTypeName];
+    if (graphQLType instanceof GraphQLNonNull) {
+        return getGraphQLSortType(graphQLType.ofType);
+    }
+
+    if (graphQLType instanceof GraphQLList) {
+        return undefined;
+    }
+
+    const sortTypeName = setSuffix(graphQLType.name, 'Type', 'SortType');
+
+    return cache(sortTypesCache, sortTypeName, () => new GraphQLInputObjectType({
+        name: sortTypeName,
+        fields: getGraphQLSortTypeFields(graphQLType, ...excludedFields)
+    }));
 }
 
-function setTypeSuffix(text, locate, replaceWith) {
-    const regex = new RegExp(`${locate}$`);
-    return regex.test(text)
-        ? text.replace(regex, replaceWith)
-        : `${text}${replaceWith}`;
-}
-
-function getTypeScalarFields(graphQLType, fieldTypeResolver, ...excludedFields) {
+function getGraphQLSortTypeFields(graphQLType, ...excludedFields) {
     return () => {
-        const typeFields =
-            typeof graphQLType._typeConfig.fields === "function"
-                ? graphQLType._typeConfig.fields()
-                : graphQLType._typeConfig.fields;
+        const fields = getUnresolvedFields(graphQLType, getGraphQLSortType, ...excludedFields)();
 
-        const generatedFields = {};
+        if (Object.keys(fields).length > 0) {
+            return fields;
+        }
 
-        Object.keys(typeFields)
-            .filter(key => isScalarType(typeFields[key].type))
-            .filter(key => !excludedFields.includes(key))
-            .filter(key => !typeFields[key].resolve)
-            .forEach(key => generatedFields[key] = { type: fieldTypeResolver(typeFields[key].type) });
-
-        return generatedFields;
-    };
-}
-
-function isScalarType(graphQLType) {
-    return graphQLType instanceof GraphQLScalarType ||
-        (graphQLType instanceof GraphQLNonNull && graphQLType.ofType instanceof GraphQLScalarType);
+        return { FICTIVE_SORT: { type: SortType, description: "IGNORE. Due to limitations of the package, objects with no sortable fields cannot be ommited. All input object types must have at least one field" } }
+    }
 }
 
 const SortType = new GraphQLEnumType({

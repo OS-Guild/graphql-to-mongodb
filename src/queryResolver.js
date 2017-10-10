@@ -3,13 +3,18 @@ import getMongoDbProjection from './mongoDbProjection'
 import { getGraphQLFilterType } from './graphQLFilterType'
 import getGraphQLSortType from './graphQLSortType'
 import GraphQLPaginationType from './graphQLPaginationType'
+import { isType } from 'graphql'
+import { FICTIVE_INC, clear } from './common';
 
 function getMongoDbQueryResolver(graphQLType, typeResolveDependencies, queryCallback) {
+    if (!isType(graphQLType)) throw 'getMongoDbQueryResolver must recieve a graphql type'
+    if (!queryCallback) throw 'getMongoDbQueryResolver must recieve a queryCallback'
+
     return async (obj, args, context, metadata) => {
         const filter = getMongoDbFilter(args.filter);
-        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType, typeResolveDependencies);
+        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType, typeResolveDependencies || {});
         const options = {};
-        if (args.sort) options.sort = args.sort;
+        if (args.sort) options.sort = clear(args.sort, FICTIVE_SORT);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;
         if (args.pagination && args.pagination.skip) options.skip = args.pagination.skip;
 

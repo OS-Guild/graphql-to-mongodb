@@ -5,6 +5,8 @@ import getMongoDbUpdate from './mongoDbUpdate'
 import { GraphQLNonNull } from 'graphql'
 
 function getMongoDbUpdateResolver(updateCallback, queryCallback) {
+    if (!updateCallback) throw 'getMongoDbQueryResolver must recieve an updateCallback'
+    
     return async (obj, args, context, metadata) => {
         const filter = getMongoDbFilter(args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update)

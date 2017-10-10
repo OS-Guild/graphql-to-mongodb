@@ -1,23 +1,23 @@
 # graphql-to-mongodb-query
 
-If you want to give your graphql service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
+If you want to give your javascript graphql service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
 **Now with an extra 20% non-query funcionality!** (Psst - it's update and insert stuff)
 
 ### This package comes with a whole lot of goodies:
 
 *  ```getGraphQLFilterType``` 
-*  ```getMongoDbFilter```
+*  ```getGraphQLSortType```
 *  ```getGraphQLUpdateType```
 *  ```getGraphQLInsertType``` 
-*  ```getMongoDbUpdate```
-*  ```GraphQLPaginationType```
-*  ```getGraphQLSortType```
-*  ```getMongoDbProjection```
-*  ```getMongoDbQueryResolver```
 *  ```getGraphQLQueryArgs```
-*  ```getMongoDbUpdateResolver```
 *  ```getGraphQLUpdateArgs```
+*  ```GraphQLPaginationType```
+*  ```getMongoDbFilter```
+*  ```getMongoDbProjection```
+*  ```getMongoDbUpdate```
+*  ```getMongoDbQueryResolver```
+*  ```getMongoDbUpdateResolver```
 
 #### A look at the most commonly used functionality, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 
@@ -60,7 +60,7 @@ The `filter`, `projection` and `options` added as the first paraneters of the ca
     ```js 
     { fullName: ['name'] }
     ```
-    OR
+    Or
     ```js 
     { fullName: ['name.firstName','name.LastName'] }
     ```

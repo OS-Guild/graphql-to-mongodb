@@ -1,4 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType } from 'graphql';
+import { cache, setSuffix, getUnresolvedFields } from './common';
 
 const filterTypesCache = {};
 const scalarInputTypesCache = {};
@@ -33,25 +34,14 @@ const OprExistsType = new GraphQLEnumType({
     }
 });
 
-function setTypeSuffix(text, locate, replaceWith) {
-    const regex = new RegExp(`${locate}$`);
-    return regex.test(text)
-        ? text.replace(regex, replaceWith)
-        : `${text}${replaceWith}`;
-}
-
 function getGraphQLScalarInputFilterType(graphQLScalarType, inArray) {
     const typeName = graphQLScalarType.toString() + (inArray ? "InArray" : "") + "Input";
 
-    if (!scalarInputTypesCache[typeName]) {
-        scalarInputTypesCache[typeName] = new GraphQLInputObjectType({
-            name: typeName,
-            description: inArray ? "Filter operator currently limited only to EQL and IN" : "",
-            fields: getScalarInputFilterTypeFields(graphQLScalarType, inArray)
-        });
-    }
-
-    return scalarInputTypesCache[typeName];
+    return cache(scalarInputTypesCache, typeName, () => new GraphQLInputObjectType({
+        name: typeName,
+        description: inArray ? "Filter operator currently limited only to EQL and IN" : "",
+        fields: getScalarInputFilterTypeFields(graphQLScalarType, inArray)
+    }));
 }
 
 function getScalarInputFilterTypeFields(graphQLScalarType, inArray) {
@@ -77,27 +67,13 @@ function getGraphQLInputFilterType(graphQLType, isInArray, ...excludedFields) {
     }
 
     return new GraphQLInputObjectType({
-        name: setTypeSuffix(graphQLType.name, 'Type', 'InputFilterType'),
+        name: setSuffix(graphQLType.name, 'Type', 'InputFilterType'),
         fields: getInputObjectTypeFields(graphQLType, isInArray, ...excludedFields)
     });
 }
 
 function getFields(graphQLType, isInArray, ...excludedFields) {
-    return () => {
-        const typeFields =
-            typeof graphQLType._typeConfig.fields === "function"
-                ? graphQLType._typeConfig.fields()
-                : graphQLType._typeConfig.fields;
-
-        const generatedFields = {};
-
-        Object.keys(typeFields)
-            .filter(key => !excludedFields.includes(key))
-            .filter(key => !typeFields[key].resolve)
-            .forEach(key => generatedFields[key] = { type: getGraphQLInputFilterType(typeFields[key].type, isInArray) });
-
-        return generatedFields;
-    };
+    return getUnresolvedFields(graphQLType, _ => getGraphQLInputFilterType(_, isInArray));
 }
 
 function getInputObjectTypeFields(graphQLType, inArray, ...excludedFields) {
@@ -122,16 +98,12 @@ function getOrAndFields(graphQLType, ...excludedFields) {
 }
 
 function getGraphQLFilterType(graphQLType, ...excludedFields) {
-    const filterTypeName = setTypeSuffix(graphQLType.name, 'Type', 'FilterType');
+    const filterTypeName = setSuffix(graphQLType.name, 'Type', 'FilterType');
 
-    if (!filterTypesCache[filterTypeName]) {
-        filterTypesCache[filterTypeName] = new GraphQLInputObjectType({
-            name: filterTypeName,
-            fields: getOrAndFields(graphQLType, ...excludedFields)
-        });
-    }
-
-    return filterTypesCache[filterTypeName];
+    return cache(filterTypesCache, filterTypeName, () => new GraphQLInputObjectType({
+        name: filterTypeName,
+        fields: getOrAndFields(graphQLType, ...excludedFields)
+    }));
 }
 
 function clearTypeCache() {

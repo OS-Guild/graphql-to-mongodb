@@ -1,7 +1,7 @@
 function getMongoDbProjection(fieldNode, graphQLType, resolveDependencies, ...excludedFields) {
     const projection = flattenProjection(fieldNode, graphQLType, [], ...excludedFields);
     const resolveFields = getResolveFields(fieldNode, graphQLType);
-    const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveDependencies[_]));
+    const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveDependencies[_] || []));
     return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
 }
 
@@ -12,7 +12,8 @@ function flattenProjection(fieldNode, graphQLType, path = [], ...excludedFields)
         .filter(field => {
             const name = getFieldName(field);
 
-            return !excludedFields.includes(name)
+            return name != "__typename"
+                && !excludedFields.includes(name)
                 && !typeFields[name].resolve;
         })
         .map(field => {
@@ -63,6 +64,7 @@ function flattenResolve(fieldNode, graphQLType, path = []) {
     const typeFields = getTypeFields(graphQLType);
 
     return Object.assign({}, ...getFieldNodeFields(fieldNode)
+        .filter(field => getFieldName(field) != "__typename")
         .map(field => {
             const name = getFieldName(field);
             const newPath = [...path, name];
@@ -84,7 +86,7 @@ function mergeProjectionAndResolveDependencies(projection, resolveDependencies) 
 
     for (var i = 0; i < resolveDependencies.length; i++) {
         const dependency = resolveDependencies[i];
-        
+
         const projectionKeys = Object.keys(newProjection);
 
         if (projectionKeys.includes(dependency)) {
@@ -96,7 +98,7 @@ function mergeProjectionAndResolveDependencies(projection, resolveDependencies) 
         }
 
         const regex = new RegExp(`^${dependency}.`)
-        
+
         projectionKeys
             .filter(key => regex.test(key))
             .forEach(key => delete newProjection[key]);

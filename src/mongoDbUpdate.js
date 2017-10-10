@@ -1,3 +1,5 @@
+import { FICTIVE_INC, clear } from './common';
+
 function getMongoDbUpdate(update) {
     return clear({
         update: {
@@ -6,7 +8,7 @@ function getMongoDbUpdate(update) {
             $inc: update.inc
         },
         options: update.setOnInsert ? { upsert: true } : undefined
-    });
+    }, FICTIVE_INC);
 }
 
 function flattenSet(obj, path = []) {
@@ -23,29 +25,6 @@ function flattenSet(obj, path = []) {
 
             return flattenSet(value, newPath);
         }));
-}
-
-function clear(obj, ...excludedKeys) {
-    return Object.keys(obj).reduce((cleared, key) => {
-        let value = obj[key];
-        if (value !== undefined &&
-            value !== null &&
-            !excludedKeys.includes(key)) {
-
-            if (typeof value != 'object' ||
-                value instanceof Date) {
-                return { ...cleared, [key]: value }
-            }
-
-            const objectValue = clear(value, ...excludedKeys);
-
-            if (Object.keys(objectValue).length > 0) {
-                return { ...cleared, [key]: objectValue }
-            }
-        }
-
-        return cleared;
-    }, {});
 }
 
 export default getMongoDbUpdate;
