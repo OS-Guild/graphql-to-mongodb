@@ -4,7 +4,7 @@ import { getGraphQLFilterType } from './graphQLFilterType'
 import getGraphQLSortType from './graphQLSortType'
 import GraphQLPaginationType from './graphQLPaginationType'
 import { isType } from 'graphql'
-import { FICTIVE_INC, clear } from './common';
+import { FICTIVE_SORT, clear } from './common';
 
 function getMongoDbQueryResolver(graphQLType, typeResolveDependencies, queryCallback) {
     if (!isType(graphQLType)) throw 'getMongoDbQueryResolver must recieve a graphql type'

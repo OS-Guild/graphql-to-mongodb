@@ -1,5 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType } from 'graphql';
-import { cache, setSuffix, getTypeFields, getUnresolvedFields, clear } from './common';
+import { cache, setSuffix, getTypeFields, getUnresolvedFields, clear, FICTIVE_SORT } from './common';
 
 const sortTypesCache = {};
 
@@ -32,7 +32,7 @@ function getGraphQLSortTypeFields(graphQLType, ...excludedFields) {
             return fields;
         }
 
-        return { FICTIVE_SORT: { type: SortType, description: "IGNORE. Due to limitations of the package, objects with no sortable fields cannot be ommited. All input object types must have at least one field" } }
+        return { [FICTIVE_SORT]: { type: SortType, description: "IGNORE. Due to limitations of the package, objects with no sortable fields cannot be ommited. All input object types must have at least one field" } }
     }
 }
 

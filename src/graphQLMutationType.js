@@ -1,5 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLBoolean, GraphQLInt, GraphQLFloat } from 'graphql';
-import { cache, setSuffix, getUnresolvedFields, getTypeFields, clear } from './common';
+import { FICTIVE_INC, cache, setSuffix, getUnresolvedFields, getTypeFields, clear } from './common';
 
 const updateTypesCache = {};
 const inputTypesCache = {};
@@ -101,7 +101,7 @@ function getGraphQLIncTypeFields(graphQLType, ...excludedFields) {
             return fields;
         }
 
-        return { FICTIVE_INC: { type: GraphQLInt, description: "IGNORE. Due to limitations of the package, objects with no incrementable fields cannot be ommited. All input object types must have at least one field" } }
+        return { [FICTIVE_INC]: { type: GraphQLInt, description: "IGNORE. Due to limitations of the package, objects with no incrementable fields cannot be ommited. All input object types must have at least one field" } }
     }
 }
 

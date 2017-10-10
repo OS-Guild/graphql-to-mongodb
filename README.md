@@ -106,8 +106,6 @@ age: SortType
 ```
 `SortTyoe` enum can be either `ASC` or `DESC`
 
-\* Presently sorting is available only for root level fields
-
 **GraphQLPaginationType:**
 ```
 limit: Int
