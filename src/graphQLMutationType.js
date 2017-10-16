@@ -25,7 +25,8 @@ function getUpdateFields(graphQLType, ...excludedFields) {
 
 function getGraphQLInputType(graphQLType, ...excludedFields) {
 
-    if (graphQLType instanceof GraphQLScalarType) {
+    if (graphQLType instanceof GraphQLScalarType ||
+        graphQLType instanceof GraphQLEnumType) {
         return graphQLType;
     }
 
@@ -47,7 +48,8 @@ function getGraphQLInputType(graphQLType, ...excludedFields) {
 
 function getGraphQLInsertType(graphQLType, ...excludedFields) {
 
-    if (graphQLType instanceof GraphQLScalarType) {
+    if (graphQLType instanceof GraphQLScalarType ||
+        graphQLType instanceof GraphQLEnumType) {
         return graphQLType;
     }
 
@@ -69,7 +71,8 @@ function getGraphQLInsertType(graphQLType, ...excludedFields) {
 
 function getGraphQLIncType(graphQLType, ...excludedFields) {
 
-    if (graphQLType instanceof GraphQLScalarType) {
+    if (graphQLType instanceof GraphQLScalarType ||
+        graphQLType instanceof GraphQLEnumType) {
         if (["Int", "Float"].includes(graphQLType.name)) {
             return graphQLType;
         }

@@ -54,7 +54,8 @@ function getScalarInputFilterTypeFields(graphQLScalarType, inArray) {
 
 function getGraphQLInputFilterType(graphQLType, isInArray, ...excludedFields) {
 
-    if (graphQLType instanceof GraphQLScalarType) {
+    if (graphQLType instanceof GraphQLScalarType ||
+        graphQLType instanceof GraphQLEnumType) {
         return getGraphQLScalarInputFilterType(graphQLType, isInArray);
     }
 

@@ -4,7 +4,8 @@ import { cache, setSuffix, getTypeFields, getUnresolvedFields, clear, FICTIVE_SO
 const sortTypesCache = {};
 
 function getGraphQLSortType(graphQLType, ...excludedFields) {
-    if (graphQLType instanceof GraphQLScalarType) {
+    if (graphQLType instanceof GraphQLScalarType ||
+        graphQLType instanceof GraphQLEnumType) {
         return SortType;
     }
 
