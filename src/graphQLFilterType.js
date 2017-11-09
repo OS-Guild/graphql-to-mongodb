@@ -2,6 +2,7 @@ import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, G
 import { cache, setSuffix, getUnresolvedFields } from './common';
 
 const filterTypesCache = {};
+const inputFilterTypesCache = {};
 const scalarInputTypesCache = {};
 
 const OprType = new GraphQLEnumType({
@@ -67,10 +68,11 @@ function getGraphQLInputFilterType(graphQLType, isInArray, ...excludedFields) {
         return getGraphQLInputFilterType(graphQLType.ofType, true);
     }
 
-    return new GraphQLInputObjectType({
-        name: setSuffix(graphQLType.name, 'Type', 'InputFilterType'),
+    const typeName = setSuffix(graphQLType.name, 'Type', 'InputFilterType');
+    return cache(inputFilterTypesCache, typeName, () => new GraphQLInputObjectType({
+        name: typeName,
         fields: getInputObjectTypeFields(graphQLType, isInArray, ...excludedFields)
-    });
+    }));
 }
 
 function getFields(graphQLType, isInArray, ...excludedFields) {

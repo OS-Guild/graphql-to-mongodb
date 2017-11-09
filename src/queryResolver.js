@@ -6,13 +6,13 @@ import GraphQLPaginationType from './graphQLPaginationType'
 import { isType } from 'graphql'
 import { FICTIVE_SORT, clear } from './common';
 
-function getMongoDbQueryResolver(graphQLType, typeResolveDependencies, queryCallback) {
+function getMongoDbQueryResolver(graphQLType, queryCallback) {
     if (!isType(graphQLType)) throw 'getMongoDbQueryResolver must recieve a graphql type'
-    if (!queryCallback) throw 'getMongoDbQueryResolver must recieve a queryCallback'
+    if (typeof queryCallback !== 'function') throw 'getMongoDbQueryResolver must recieve a queryCallback function'
 
     return async (obj, args, context, metadata) => {
         const filter = getMongoDbFilter(args.filter);
-        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType, typeResolveDependencies || {});
+        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType);
         const options = {};
         if (args.sort) options.sort = clear(args.sort, FICTIVE_SORT);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;

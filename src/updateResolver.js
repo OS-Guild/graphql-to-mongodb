@@ -2,16 +2,18 @@ import { getGraphQLFilterType } from './graphQLFilterType'
 import { getGraphQLUpdateType } from './graphQLMutationType'
 import getMongoDbFilter from './mongoDbFilter'
 import getMongoDbUpdate from './mongoDbUpdate'
-import { GraphQLNonNull } from 'graphql'
+import { GraphQLNonNull, isType } from 'graphql'
+import getMongoDbProjection from './mongoDbProjection'
 
-function getMongoDbUpdateResolver(updateCallback, queryCallback) {
-    if (!updateCallback) throw 'getMongoDbQueryResolver must recieve an updateCallback'
+function getMongoDbUpdateResolver(graphQLType, updateCallback) {
+    if (!isType(graphQLType)) throw 'getMongoDbUpdateResolver must recieve a graphql type';
+    if (typeof updateCallback !== 'function') throw 'getMongoDbUpdateResolver must recieve an updateCallback';
     
     return async (obj, args, context, metadata) => {
         const filter = getMongoDbFilter(args.filter);
-        const mongoUpdate = getMongoDbUpdate(args.update)
-        const updateResult = await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, obj, args, context, metadata);
-        return queryCallback ? await queryCallback(filter, obj, args, context, metadata) : updateResult;
+        const mongoUpdate = getMongoDbUpdate(args.update);
+        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType);
+        return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, obj, args, context, metadata);
     };
 }
 

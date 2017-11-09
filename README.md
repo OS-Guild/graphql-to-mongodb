@@ -2,9 +2,9 @@
 
 If you want to give your javascript graphql service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
-**Now with an extra 20% non-query funcionality!** (Psst - it's update and insert stuff)
+**Now with an extra 20% non-query capabilities!** (Psst - it's update and insert stuff)
 
-### This package comes with a whole lot of goodies:
+### Functionality galore!
 
 *  ```getGraphQLFilterType``` 
 *  ```getGraphQLSortType```
@@ -19,7 +19,7 @@ If you want to give your javascript graphql service a whole lot of the power of 
 *  ```getMongoDbQueryResolver```
 *  ```getMongoDbUpdateResolver```
 
-#### A look at the most commonly used functionality, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
+### But... Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 
 **Given a simple graphql type:**
 ```js
@@ -48,23 +48,23 @@ new GraphQLObjectType({
 person: {
     type: new GraphQLList(PersonType),
     args: getGraphQLQueryArgs(PersonType),
-    resolve: getMongoDbQueryResolver(PersonType, personTypeResolveDependencies,
+    resolve: getMongoDbQueryResolver(PersonType,
         async (filter, projection, options, obj, args, context) => {
             return await context.db.collection('persons').find(filter, projection, options).toArray();
         })
 }
 ```
-The `filter`, `projection` and `options` added as the first paraneters of the callback can be sent directly to the mongo find function as shown. The rest of the parameter are recieved from the graphql api. 
+The `filter`, `projection` and `options`, added as the first paraneters of the callback, can be sent directly to the mongo find function as shown. The rest of the parameter are recieved from the graphql api. 
 
-* `personTypeResolveDependencies` should state what are the dependencies of fields with a resolve function, i.e: 
+* Additionally, resolve fields' dependencies should be defined in the graphql type like so:
     ```js 
-    { fullName: ['name'] }
+    fullName: {
+        type: GraphQLString,
+        resolve: (obj, args, { db }) => `${obj.name.firstName} ${obj.name.lastName}`,
+        dependencies: ['name'] // or ['name.firstName', 'name.LastName'], whatever tickles your fancy
+    }
     ```
-    Or
-    ```js 
-    { fullName: ['name.firstName','name.LastName'] }
-    ```
-    This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if comunication volume is of no concern, the projection can be replaced with an empty object
+    This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
 
 **The following field is added to the schema (copied from graphiQl):**
 ```
@@ -104,7 +104,7 @@ values: [String]
 ```
 age: SortType
 ```
-`SortTyoe` enum can be either `ASC` or `DESC`
+`SortType` enum can be either `ASC` or `DESC`
 
 **GraphQLPaginationType:**
 ```
@@ -121,7 +121,8 @@ skip: Int
                 firstName: { opr: EQL, value:"John" } 
             }
         },
-        sort: { age: DESC }
+        sort: { age: DESC },
+        pagination: { limit: 50 }
     ) {
     fullName
     age

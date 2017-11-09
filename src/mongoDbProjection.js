@@ -1,7 +1,7 @@
-function getMongoDbProjection(fieldNode, graphQLType, resolveDependencies, ...excludedFields) {
+function getMongoDbProjection(fieldNode, graphQLType, ...excludedFields) {
     const projection = flattenProjection(fieldNode, graphQLType, [], ...excludedFields);
     const resolveFields = getResolveFields(fieldNode, graphQLType);
-    const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveDependencies[_] || []));
+    const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveFields[_]));
     return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
 }
 
@@ -69,14 +69,20 @@ function flattenResolve(fieldNode, graphQLType, path = []) {
             const name = getFieldName(field);
             const newPath = [...path, name];
 
-            if (typeFields[getFieldName(field)].resolve) {
-                return { [newPath.join(".")]: 1 };
+            const typeField = typeFields[name];
+
+            if (typeField.resolve) {
+                return {
+                [newPath.join(".")]: Array.isArray(typeField.dependencies)
+                    ? typeField.dependencies
+                    : []
+                };
             }
             if (isFieldNodeScalar(field)) {
                 return {};
             }
 
-            return flattenResolve(field, getInnerGraphQLType(typeFields[name].type), newPath);
+            return flattenResolve(field, getInnerGraphQLType(typeField.type), newPath);
         }));
 }
 

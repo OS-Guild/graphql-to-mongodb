@@ -47,6 +47,27 @@ function getGraphQLInputType(graphQLType, ...excludedFields) {
 }
 
 function getGraphQLInsertType(graphQLType, ...excludedFields) {
+    const inputTypeName = setSuffix(graphQLType.name, 'Type', 'InsertType');
+
+    return cache(insertTypesCache, inputTypeName, () => new GraphQLInputObjectType({
+        name: inputTypeName,
+        fields: getGraphQLInsertTypeFields(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)
+    }));
+}
+
+function getGraphQLInsertTypeFields(graphQLType, typeResolver, ...excludedFields) {
+    return () => {
+        const fields = getUnresolvedFields(graphQLType, typeResolver, ...excludedFields)();
+
+        if (fields._id && fields._id.type instanceof GraphQLNonNull) {
+            fields._id.type = fields._id.type.ofType;
+        }
+
+        return fields;
+    };
+}
+
+function getGraphQLInsertTypeNested(graphQLType, ...excludedFields) {
 
     if (graphQLType instanceof GraphQLScalarType ||
         graphQLType instanceof GraphQLEnumType) {
@@ -54,18 +75,18 @@ function getGraphQLInsertType(graphQLType, ...excludedFields) {
     }
 
     if (graphQLType instanceof GraphQLNonNull) {
-        return new GraphQLNonNull(getGraphQLInsertType(graphQLType.ofType));
+        return new GraphQLNonNull(getGraphQLInsertTypeNested(graphQLType.ofType));
     }
 
     if (graphQLType instanceof GraphQLList) {
-        return new GraphQLList(getGraphQLInsertType(graphQLType.ofType));
+        return new GraphQLList(getGraphQLInsertTypeNested(graphQLType.ofType));
     }
 
     const inputTypeName = setSuffix(graphQLType.name, 'Type', 'InsertType');
 
     return cache(insertTypesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
-        fields: getUnresolvedFields(graphQLType, getGraphQLInsertType, ...excludedFields)
+        fields: getUnresolvedFields(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)
     }));
 }
 
