@@ -13,13 +13,14 @@ function getMongoDbUpdate(update) {
 
 function flattenSet(obj, path = []) {
     return Object.assign({}, ...Object.keys(obj)
-        .filter(key => obj[key])
         .map(key => {
             const value = obj[key];
             const newPath = [...path, key];
 
             if (typeof value != 'object' ||
-                value instanceof Date) {
+                Array.isArray(value) ||
+                value instanceof Date ||
+                value === null) {
                 return { [newPath.join(".")]: value }
             }
 
