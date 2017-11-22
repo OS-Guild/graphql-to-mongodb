@@ -1,65 +1,94 @@
-function flatten(object, ...excludedFields) {
-    return Object.assign({}, ...inner_flatten(object, [], ...excludedFields));
-};
+import { isType, GraphQLScalarType, GraphQLEnumType } from 'graphql'
+import { getTypeFields, getInnerType } from './common'
 
-function inner_flatten(object, path, ...excludedFields) {
-    return [].concat(
-        ...Object.keys(object)
-            .filter(key => !excludedFields.includes(key))
-            .map(key => {
-
-                if (key == 'opr') {
-                    return { [path.join(".")]: toMongoExistsFilter(object[key]) };
-                }
-
-                const newPath = [...path, key];
-
-                if (typeof object[key] === 'object') {
-
-                    if (isScalarInputType(object[key])) {
-                        return { [newPath.join(".")]: toMongoScalarFilter(object[key]) };
-                    }
-
-                    return inner_flatten(object[key], newPath);
-                }
-
-                return { [newPath.join(".")]: object[key] };
-            })
-    );
+const operatorsMongoDbKeys = {
+    EQ: '$eq',
+    GT: '$gt',
+    GTE: '$gte',
+    IN: '$in',
+    LT: '$lt',
+    LTE: '$lte',
+    NEQ: '$ne',
+    NIN: '$nin',
 }
 
-function isScalarInputType(object) {
-    return object.opr && !["exists", "not_exists"].includes(object.opr);
-}
+function getMongoDbFilter(graphQLType, graphQLFilter = {}) {
+    if (!isType(graphQLType)) throw 'First arg of getMongoDbFilter must be the base graphqlType to be parsed'
 
-function toMongoScalarFilter(object) {
-    const mongoFieldFilter = {};
+    const filter = parseMongoDbFilter(graphQLType, graphQLFilter, [], "OR", "AND");
 
-    if (["$in", "$nin"].includes(object.opr)) {
-        mongoFieldFilter[object.opr] = object.values || [];
-    } else {
-        mongoFieldFilter[object.opr] = object.value;
+    if (graphQLFilter["OR"]) {
+        filter["$or"] = graphQLFilter["OR"].map(_ => getMongoDbFilter(graphQLType, _));
     }
-
-    return mongoFieldFilter;
-}
-
-function toMongoExistsFilter(exists) {
-    return { $exists: exists == "exists" ? true : false };
-}
-
-function getMongoDbFilter(graphQlFilter = {}) {
-
-    const filter = flatten(graphQlFilter, "OR", "AND");
-
-    if (graphQlFilter["OR"]) {
-        filter["$or"] = graphQlFilter["OR"].map(_ => getMongoDbFilter(_));
-    }
-    if (graphQlFilter["AND"]) {
-        filter["$and"] = graphQlFilter["AND"].map(_ => getMongoDbFilter(_));
+    if (graphQLFilter["AND"]) {
+        filter["$and"] = graphQLFilter["AND"].map(_ => getMongoDbFilter(graphQLType, _));
     }
 
     return filter;
+};
+
+function parseMongoDbFilter(graphQLType, graphQLFilter, path = [], ...excludedFields) {
+    const typeFields = getTypeFields(graphQLType)();
+
+    return Object.assign({}, ...Object.keys(graphQLFilter)
+        .filter(key => !excludedFields.includes(key))
+        .map(key => {
+            const fieldType = getInnerType(typeFields[key].type);
+            const filterField = graphQLFilter[key];
+
+            if (key == 'opr') {
+                return { [path.join(".")]: parseMongoExistsFilter(filterField) };
+            }
+
+            const newPath = [...path, key];
+
+            if (fieldType instanceof GraphQLScalarType || fieldType instanceof GraphQLEnumType) {
+                const mongoDbScalarFilter = parseMongoDbScalarFilter(filterField);
+
+                if (mongoDbScalarFilter && Object.keys(mongoDbScalarFilter).length > 0) {
+                    return { [newPath.join(".")]: mongoDbScalarFilter };
+                } else {
+                    return {};
+                }
+            }
+
+            return parseMongoDbFilter(fieldType, filterField, newPath, ...excludedFields);
+        }));
+}
+
+function parseMongoExistsFilter(exists) {
+    return { $exists: exists == "exists" ? true : false };
+}
+
+let dperecatedMessageSent = false;
+
+function parseMongoDbScalarFilter(graphQLFilter) {
+    const mongoDbScalarFilter = {};
+
+    Object.keys(graphQLFilter)
+        .filter(key => key !== 'value' && key !== 'values')
+        .forEach(key => {
+            const element = graphQLFilter[key];
+            ////////////// DEPRECATED /////////////////////////////////////////
+            if (key === 'opr') {
+                if (!dperecatedMessageSent) {
+                    console.warn('scalar filter "opr" field is deprecated, please switch to the operator fields')
+                    dperecatedMessageSent = true;
+                }
+                if (["$in", "$nin"].includes(element)) {
+                    if (graphQLFilter.values) {
+                        mongoDbScalarFilter[element] = graphQLFilter.values;
+                    }
+                } else if (graphQLFilter.value !== undefined) {
+                    mongoDbScalarFilter[element] = graphQLFilter.value;
+                }
+            ///////////////////////////////////////////////////////////////////
+            } else {
+                mongoDbScalarFilter[operatorsMongoDbKeys[key]] = element;
+            }
+        });
+
+    return mongoDbScalarFilter;
 }
 
 export default getMongoDbFilter;

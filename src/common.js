@@ -21,7 +21,7 @@ function setSuffix(text, locate, replaceWith) {
         : `${text}${replaceWith}`;
 }
 
-function getTypeFields(graphQLType, filter, typeResolver, ...excludedFields) {
+function getTypeFields(graphQLType, filter = null, typeResolver = null, ...excludedFields) {
     return () => {
         const typeFields =
             typeof graphQLType._typeConfig.fields === "function"
@@ -32,11 +32,13 @@ function getTypeFields(graphQLType, filter, typeResolver, ...excludedFields) {
 
         Object.keys(typeFields)
             .filter(key => !excludedFields.includes(key))
-            .filter(key => filter(key, typeFields[key]))
+            .filter(key => !filter || filter(key, typeFields[key]))
             .forEach(key => {
-                const type = typeResolver(typeFields[key].type);
+                const type = typeResolver
+                    ? typeResolver(typeFields[key].type)
+                    : typeFields[key].type;
                 if (type) generatedFields[key] = { type: type }
-        }); //, ...excludedFields
+            }); //, ...excludedFields
 
         return generatedFields;
     };
@@ -44,9 +46,9 @@ function getTypeFields(graphQLType, filter, typeResolver, ...excludedFields) {
 
 function getUnresolvedFields(graphQLType, typeResolver, ...excludedFields) {
     return getTypeFields(
-        graphQLType, 
+        graphQLType,
         (key, field) => !field.resolve,
-        typeResolver, 
+        typeResolver,
         ...excludedFields);
 }
 

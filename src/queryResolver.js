@@ -11,7 +11,7 @@ function getMongoDbQueryResolver(graphQLType, queryCallback) {
     if (typeof queryCallback !== 'function') throw 'getMongoDbQueryResolver must recieve a queryCallback function'
 
     return async (obj, args, context, metadata) => {
-        const filter = getMongoDbFilter(args.filter);
+        const filter = getMongoDbFilter(graphQLType, args.filter);
         const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType);
         const options = {};
         if (args.sort) options.sort = clear(args.sort, FICTIVE_SORT);

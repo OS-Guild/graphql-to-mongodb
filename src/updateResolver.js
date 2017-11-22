@@ -10,7 +10,7 @@ function getMongoDbUpdateResolver(graphQLType, updateCallback) {
     if (typeof updateCallback !== 'function') throw 'getMongoDbUpdateResolver must recieve an updateCallback';
     
     return async (obj, args, context, metadata) => {
-        const filter = getMongoDbFilter(args.filter);
+        const filter = getMongoDbFilter(graphQLType, args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update);
         const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, obj, args, context, metadata);

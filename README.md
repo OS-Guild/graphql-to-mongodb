@@ -66,6 +66,8 @@ The `filter`, `projection` and `options`, added as the first paraneters of the c
     ```
     This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
 
+### That's it!
+
 **The following field is added to the schema (copied from graphiQl):**
 ```
 person(
@@ -77,28 +79,32 @@ person(
 
 **PersonFilterType:**
 ```
-age: IntInput
-name: NamInputeFilterType
+age: IntFilter
+name: NameObjectFilterType
 OR: [PersonFilterType]
 AND: [PersonFilterType]
 ```
 \* Filtering is possilbe over every none resolve field!
 
-**NamInputeFilterType:**
+**NameObjectFilterType:**
 ```
-firstName: StringInput
-lastName: StringInput
+firstName: StringFilter
+lastName: StringFilter
 opr: OprExists
 ```
 `OprExists` enum tyoe can be `EXISTS` or `NOT_EXISTS`, and can be found in nested objects and arrays
 
-**StringInput:**
+**StringFilter:**
 ```
-opr: Opr!
-value: String
-values: [String]
+EQ: String
+GT: String
+GTE: String
+IN: [String]
+LT: String
+LTE: String
+NEQ: String
+NIN: [String]
 ```
-`Opr` enum type can be any of the following: `EQL`, `GT`, `GTE`, `IN`, `LT`, `LTE`, `NE`, `NIN` (the \`values\` field should be used for `IN` and `NIN`).
 
 **PersonSortType:**
 ```
@@ -112,13 +118,16 @@ limit: Int
 skip: Int
 ```
 #### Example graphql Query:
+
+Queries the first 50 persons, oldest first,  over the age of 18, and whose first name is John
+
 ```
 {
     person (
         filter: {
-            age: { opr: GT, value: 18 },
+            age: { GT: 18 },
             name: { 
-                firstName: { opr: EQL, value:"John" } 
+                firstName: { EQ: "John" } 
             }
         },
         sort: { age: DESC },

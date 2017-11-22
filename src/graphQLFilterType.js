@@ -2,8 +2,8 @@ import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, G
 import { cache, setSuffix, getUnresolvedFields } from './common';
 
 const filterTypesCache = {};
-const inputFilterTypesCache = {};
-const scalarInputTypesCache = {};
+const objectFilterTypesCache = {};
+const scalarFilterTypesCache = {};
 
 const OprType = new GraphQLEnumType({
     name: 'Opr',
@@ -35,58 +35,13 @@ const OprExistsType = new GraphQLEnumType({
     }
 });
 
-function getGraphQLScalarInputFilterType(graphQLScalarType, inArray) {
-    const typeName = graphQLScalarType.toString() + (inArray ? "InArray" : "") + "Input";
+function getGraphQLFilterType(graphQLType, ...excludedFields) {
+    const filterTypeName = setSuffix(graphQLType.name, 'Type', 'FilterType');
 
-    return cache(scalarInputTypesCache, typeName, () => new GraphQLInputObjectType({
-        name: typeName,
-        description: inArray ? "Filter operator currently limited only to EQL and IN" : "",
-        fields: getScalarInputFilterTypeFields(graphQLScalarType, inArray)
+    return cache(filterTypesCache, filterTypeName, () => new GraphQLInputObjectType({
+        name: filterTypeName,
+        fields: getOrAndFields(graphQLType, ...excludedFields)
     }));
-}
-
-function getScalarInputFilterTypeFields(graphQLScalarType, inArray) {
-    return () => ({
-        opr: { type: new GraphQLNonNull(inArray ? OprEqType : OprType) },
-        value: { type: graphQLScalarType },
-        values: { type: new GraphQLList(graphQLScalarType) }
-    })
-}
-
-function getGraphQLInputFilterType(graphQLType, isInArray, ...excludedFields) {
-
-    if (graphQLType instanceof GraphQLScalarType ||
-        graphQLType instanceof GraphQLEnumType) {
-        return getGraphQLScalarInputFilterType(graphQLType, isInArray);
-    }
-
-    if (graphQLType instanceof GraphQLNonNull) {
-        return getGraphQLInputFilterType(graphQLType.ofType, isInArray);
-    }
-
-    if (graphQLType instanceof GraphQLList) {
-        return getGraphQLInputFilterType(graphQLType.ofType, true);
-    }
-
-    const typeName = setSuffix(graphQLType.name, 'Type', 'InputFilterType');
-    return cache(inputFilterTypesCache, typeName, () => new GraphQLInputObjectType({
-        name: typeName,
-        fields: getInputObjectTypeFields(graphQLType, isInArray, ...excludedFields)
-    }));
-}
-
-function getFields(graphQLType, isInArray, ...excludedFields) {
-    return getUnresolvedFields(graphQLType, _ => getGraphQLInputFilterType(_, isInArray));
-}
-
-function getInputObjectTypeFields(graphQLType, inArray, ...excludedFields) {
-    return () => {
-        const generatedFields = getFields(graphQLType, inArray, ...excludedFields)();
-
-        generatedFields['opr'] = { type: OprExistsType };
-
-        return generatedFields;
-    };
 }
 
 function getOrAndFields(graphQLType, ...excludedFields) {
@@ -100,18 +55,78 @@ function getOrAndFields(graphQLType, ...excludedFields) {
     };
 }
 
-function getGraphQLFilterType(graphQLType, ...excludedFields) {
-    const filterTypeName = setSuffix(graphQLType.name, 'Type', 'FilterType');
+function getFields(graphQLType, isInArray, ...excludedFields) {
+    return getUnresolvedFields(graphQLType, _ => getGraphQLObjectFilterType(_, isInArray));
+}
 
-    return cache(filterTypesCache, filterTypeName, () => new GraphQLInputObjectType({
-        name: filterTypeName,
-        fields: getOrAndFields(graphQLType, ...excludedFields)
+function getGraphQLObjectFilterType(graphQLType, isInArray, ...excludedFields) {
+
+    if (graphQLType instanceof GraphQLScalarType ||
+        graphQLType instanceof GraphQLEnumType) {
+        return getGraphQLScalarFilterType(graphQLType, isInArray);
+    }
+
+    if (graphQLType instanceof GraphQLNonNull) {
+        return getGraphQLObjectFilterType(graphQLType.ofType, isInArray);
+    }
+
+    if (graphQLType instanceof GraphQLList) {
+        return getGraphQLObjectFilterType(graphQLType.ofType, true);
+    }
+
+    const typeName = setSuffix(graphQLType.name, 'Type', 'ObjectFilterType');
+    return cache(objectFilterTypesCache, typeName, () => new GraphQLInputObjectType({
+        name: typeName,
+        fields: getInputObjectTypeFields(graphQLType, isInArray, ...excludedFields)
     }));
+}
+
+function getInputObjectTypeFields(graphQLType, inArray, ...excludedFields) {
+    return () => {
+        const generatedFields = getFields(graphQLType, inArray, ...excludedFields)();
+
+        generatedFields['opr'] = { type: OprExistsType };
+
+        return generatedFields;
+    };
+}
+
+function getGraphQLScalarFilterType(graphQLScalarType, inArray) {
+    const typeName = graphQLScalarType.toString() + (inArray ? "InArray" : "") + "Filter";
+
+    return cache(scalarFilterTypesCache, typeName, () => new GraphQLInputObjectType({
+        name: typeName,
+        description: inArray ? "Filter operator currently limited only to EQL and IN" : "",
+        fields: getGraphQLScalarFilterTypeFields(graphQLScalarType, inArray)
+    }));
+}
+
+function getGraphQLScalarFilterTypeFields(graphQLScalarType, inArray) {
+    return inArray
+        ? {
+            opr: { type: OprEqType, deprecationReason: 'Switched to the more intuitive operator fields' },
+            value: { type: graphQLScalarType, deprecationReason: 'Switched to the more intuitive operator fields' },
+            values: { type: new GraphQLList(graphQLScalarType), deprecationReason: 'Switched to the more intuitive operator fields' },
+            EQ: { type: graphQLScalarType },
+            IN: { type: new GraphQLList(graphQLScalarType) }
+        } : {
+            opr: { type: OprType, deprecationReason: 'Switched to the more intuitive operator fields' },
+            value: { type: graphQLScalarType, deprecationReason: 'Switched to the more intuitive operator fields' },
+            values: { type: new GraphQLList(graphQLScalarType), deprecationReason: 'Switched to the more intuitive operator fields' },
+            EQ: { type: graphQLScalarType },
+            GT: { type: graphQLScalarType },
+            GTE: { type: graphQLScalarType },
+            IN: { type: new GraphQLList(graphQLScalarType) },
+            LT: { type: graphQLScalarType },
+            LTE: { type: graphQLScalarType },
+            NEQ: { type: graphQLScalarType },
+            NIN: { type: new GraphQLList(graphQLScalarType) }
+        };
 }
 
 function clearTypeCache() {
     for (var member in filterTypesCache) delete filterTypesCache[member];
-    for (var member in scalarInputTypesCache) delete scalarInputTypesCache[member];
+    for (var member in scalarFilterTypesCache) delete scalarFilterTypesCache[member];
 }
 
 export { getGraphQLFilterType, clearTypeCache, OprType, OprEqType, OprExistsType }
