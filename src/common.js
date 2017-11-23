@@ -1,4 +1,4 @@
-import { isType } from 'graphql'
+import { isType, GraphQLList, GraphQLScalarType, GraphQLEnumType } from 'graphql'
 
 const FICTIVE_INC = "FICTIVE_INC";
 const FICTIVE_SORT = "FICTIVE_SORT";
@@ -62,6 +62,21 @@ function getInnerType(graphQLType) {
     return innerType;
 }
 
+function isListType(graphQLType) {
+    let innerType = graphQLType;
+
+    while (innerType.ofType) {
+        if (innerType instanceof GraphQLList) return true;
+        innerType = innerType.ofType;
+    }
+
+    return false;
+}
+
+function isScalarType(graphQLType) {
+    return graphQLType instanceof GraphQLScalarType || graphQLType instanceof GraphQLEnumType;
+}
+
 function clear(obj, ...excludedKeys) {
     return Object.keys(obj).reduce((cleared, key) => {
         let value = obj[key];
@@ -86,4 +101,4 @@ function clear(obj, ...excludedKeys) {
     }, {});
 }
 
-export { FICTIVE_INC, FICTIVE_SORT, cache, setSuffix, getUnresolvedFields, getTypeFields, getInnerType, clear };
+export { FICTIVE_INC, FICTIVE_SORT, cache, setSuffix, getUnresolvedFields, getTypeFields, getInnerType, clear, isListType, isScalarType };

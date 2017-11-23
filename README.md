@@ -4,6 +4,8 @@ If you want to give your javascript graphql service a whole lot of the power of 
 
 **Now with an extra 20% non-query capabilities!** (Psst - it's update and insert stuff)
 
+### [Change Log](./CHANGELOG.md)
+
 ### Functionality galore!
 
 *  ```getGraphQLFilterType``` 

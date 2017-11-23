@@ -1,7 +1,7 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLInt, GraphQLNonNull, GraphQLBoolean } from 'graphql';
 
 const GraphQLPaginationType = new GraphQLInputObjectType({
-    name: "GraphQLPaginationType",
+    name: "PaginationType",
     fields: {
         limit: { type: GraphQLInt },
         skip: { type: GraphQLInt }
