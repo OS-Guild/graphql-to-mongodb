@@ -4,7 +4,7 @@
 - Change log added
 ---
 ### 1.2.0
-- Oprerator selection changed to a shorter format: ```name: { EQ: "John" } ```
+- Oprerator selection changed to a shorter format: `name: { EQ: "John" }`
   -  Old format deprecated
 ---
 ---
