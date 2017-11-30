@@ -12,7 +12,7 @@ function getMongoDbQueryResolver(graphQLType, queryCallback) {
 
     return async (obj, args, context, metadata) => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
-        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType);
+        const projection = getMongoDbProjection(metadata.fieldNodes, graphQLType);
         const options = {};
         if (args.sort) options.sort = clear(args.sort, FICTIVE_SORT);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;

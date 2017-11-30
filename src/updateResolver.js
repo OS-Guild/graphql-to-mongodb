@@ -12,7 +12,7 @@ function getMongoDbUpdateResolver(graphQLType, updateCallback) {
     return async (obj, args, context, metadata) => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update);
-        const projection = getMongoDbProjection(metadata.fieldNodes[0], graphQLType);
+        const projection = getMongoDbProjection(metadata.fieldNodes, graphQLType);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, obj, args, context, metadata);
     };
 }

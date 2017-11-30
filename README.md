@@ -1,6 +1,6 @@
 # graphql-to-mongodb-query
 
-If you want to give your javascript graphql service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
+If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
 **Now with an extra 20% non-query capabilities!** (Psst - it's update and insert stuff)
 
@@ -23,7 +23,7 @@ If you want to give your javascript graphql service a whole lot of the power of 
 
 ### But... Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 
-**Given a simple graphql type:**
+**Given a simple GraphQL type:**
 ```js
 new GraphQLObjectType({
     name: 'PersonType',
@@ -43,7 +43,7 @@ new GraphQLObjectType({
     })
 })
 ```
-**We'll define the peron query in our graphql scheme like so:**
+**We'll define the peron query in our GraphQL scheme like so:**
 
 
 ```js
@@ -56,9 +56,9 @@ person: {
         })
 }
 ```
-The `filter`, `projection` and `options`, added as the first paraneters of the callback, can be sent directly to the mongo find function as shown. The rest of the parameter are recieved from the graphql api. 
+You'll notice that integrating the package takes little more than adding some fancy middleware over the resolve function.  The `filter, projection, options` added as the first paraneters of the callback, can be sent directly to the MongoDB find function as shown. The rest of the parameter are the standard recieved from the GraphQL api. 
 
-* Additionally, resolve fields' dependencies should be defined in the graphql type like so:
+* Additionally, resolve fields' dependencies should be defined in the GraphQL type like so:
     ```js 
     fullName: {
         type: GraphQLString,
@@ -119,7 +119,7 @@ age: SortType
 limit: Int
 skip: Int
 ```
-#### Example graphql Query:
+#### Example GraphQL Query:
 
 Queries the first 50 persons, oldest first,  over the age of 18, and whose first name is John
 

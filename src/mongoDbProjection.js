@@ -1,88 +1,92 @@
-function getMongoDbProjection(fieldNode, graphQLType, ...excludedFields) {
-    const projection = flattenProjection(fieldNode, graphQLType, [], ...excludedFields);
+import { getTypeFields, getInnerType } from './common';
+import { isType } from 'graphql';
+
+function getMongoDbProjection(fieldNodes, graphQLType, ...excludedFields) {
+    if (!Array.isArray(fieldNodes)) throw 'First argument of "getMongoDbProjection" must be an array';
+    if (!isType(graphQLType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
+    
+    const fieldNode = mergeAndSimplifyNodes(fieldNodes);
+    const projection = getProjection(fieldNode, graphQLType, [], ...excludedFields);
     const resolveFields = getResolveFields(fieldNode, graphQLType);
     const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveFields[_]));
     return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
 }
 
-function flattenProjection(fieldNode, graphQLType, path = [], ...excludedFields) {
-    const typeFields = getTypeFields(graphQLType);
+function mergeAndSimplifyNodes(nodes) {
+    const getFieldNodeFields = fieldNode => fieldNode.selectionSet.selections.filter(_ => _.kind == 'Field');
+    const getFieldName = fieldNode => fieldNode.name.value;
+    const isFieldNodeScalar = fieldNode => !fieldNode.selectionSet;
 
-    return Object.assign({}, ...getFieldNodeFields(fieldNode)
-        .filter(field => {
-            const name = getFieldName(field);
+    const nodesFields = nodes
+        .map(getFieldNodeFields)
+        .map(_ => _.reduce((seed, curr) => ({ ...seed, [getFieldName(curr)]: curr }), {}));
 
-            return name != "__typename"
-                && !excludedFields.includes(name)
-                && !typeFields[name].resolve;
-        })
-        .map(field => {
-            const name = getFieldName(field);
-            const newPath = [...path, name];
+    const fieldsDictionary = {};
 
-            if (isFieldNodeScalar(field)) {
+    nodesFields.forEach(nodeFields =>
+        Object.keys(nodeFields).forEach(key => {
+            if (fieldsDictionary[key]) {
+                fieldsDictionary[key].push(nodeFields[key])
+            } else {
+                fieldsDictionary[key] = [nodeFields[key]];
+            }
+        }));
+
+    const node = {};
+
+    Object.keys(fieldsDictionary).forEach(key => {
+        const fieldNodes = fieldsDictionary[key];
+        if (isFieldNodeScalar(fieldNodes[0])) {
+            node[key] = 1;
+        } else {
+            node[key] = mergeAndSimplifyNodes(fieldNodes);
+        }
+    });
+
+    return node;
+}
+
+function getProjection(fieldNode, graphQLType, path, ...excludedFields) {
+    const typeFields = getTypeFields(graphQLType)();
+
+    return Object.assign({}, ...Object.keys(fieldNode)
+        .filter(key => key !== "__typename"
+            && !excludedFields.includes(key)
+            && !typeFields[key].resolve)
+        .map(key => {
+            const newPath = [...path, key];
+            const field = fieldNode[key];
+
+            if (field === 1) {
                 return { [newPath.join(".")]: 1 };
             }
 
-            return flattenProjection(field, getInnerGraphQLType(typeFields[name].type), newPath);
+            return getProjection(field, getInnerType(typeFields[key].type), newPath);
         }));
 }
 
-function getFieldNodeFields(fieldNode) {
-    return fieldNode.selectionSet.selections.filter(_ => _.kind == 'Field');
-}
+function getResolveFields(fieldNode, graphQLType, path = []) {
+    const typeFields = getTypeFields(graphQLType)();
 
-function isFieldNodeScalar(fieldNode) {
-    return !fieldNode.selectionSet;
-}
-
-function getTypeFields(graphQLType) {
-    return typeof graphQLType._typeConfig.fields === "function"
-        ? graphQLType._typeConfig.fields()
-        : graphQLType._typeConfig.fields;
-}
-
-function getFieldName(fieldNode) {
-    return fieldNode.name.value;
-}
-
-function getInnerGraphQLType(graphQLType) {
-    let type = graphQLType;
-
-    while (type.ofType) {
-        type = type.ofType;
-    }
-
-    return type;
-}
-
-function getResolveFields(fieldNode, graphQLType) {
-    return flattenResolve(fieldNode, graphQLType, []);
-}
-
-function flattenResolve(fieldNode, graphQLType, path = []) {
-    const typeFields = getTypeFields(graphQLType);
-
-    return Object.assign({}, ...getFieldNodeFields(fieldNode)
-        .filter(field => getFieldName(field) != "__typename")
-        .map(field => {
-            const name = getFieldName(field);
-            const newPath = [...path, name];
-
-            const typeField = typeFields[name];
+    return Object.assign({}, ...Object.keys(fieldNode)
+        .filter(key => key !== "__typename")
+        .map(key => {
+            const newPath = [...path, key];
+            const field = fieldNode[key];
+            const typeField = typeFields[key];
 
             if (typeField.resolve) {
                 return {
-                [newPath.join(".")]: Array.isArray(typeField.dependencies)
-                    ? typeField.dependencies
-                    : []
+                    [newPath.join(".")]: Array.isArray(typeField.dependencies)
+                        ? typeField.dependencies
+                        : []
                 };
             }
-            if (isFieldNodeScalar(field)) {
+            if (field === 1) {
                 return {};
             }
 
-            return flattenResolve(field, getInnerGraphQLType(typeField.type), newPath);
+            return getResolveFields(field, getInnerType(typeField.type), newPath);
         }));
 }
 

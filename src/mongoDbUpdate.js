@@ -4,14 +4,14 @@ function getMongoDbUpdate(update) {
     return clear({
         update: {
             $setOnInsert: update.setOnInsert,
-            $set: update.set ? flattenSet(update.set) : undefined,
+            $set: update.set ? flattenMongoDbSet(update.set) : undefined,
             $inc: update.inc
         },
         options: update.setOnInsert ? { upsert: true } : undefined
     }, FICTIVE_INC);
 }
 
-function flattenSet(obj, path = []) {
+function flattenMongoDbSet(obj, path = []) {
     return Object.assign({}, ...Object.keys(obj)
         .map(key => {
             const value = obj[key];
@@ -24,7 +24,7 @@ function flattenSet(obj, path = []) {
                 return { [newPath.join(".")]: value }
             }
 
-            return flattenSet(value, newPath);
+            return flattenMongoDbSet(value, newPath);
         }));
 }
 
