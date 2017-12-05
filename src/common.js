@@ -34,22 +34,24 @@ function getTypeFields(graphQLType, filter = null, typeResolver = null, ...exclu
             .filter(key => !excludedFields.includes(key))
             .filter(key => !filter || filter(key, typeFields[key]))
             .forEach(key => {
+                const field = typeFields[key];
                 const type = typeResolver
-                    ? typeResolver(typeFields[key].type)
-                    : typeFields[key].type;
-                if (type) generatedFields[key] = { type: type }
+                    ? typeResolver(field.type)
+                    : field.type;
+                if (type) generatedFields[key] = { ...field, type: type }
             }); //, ...excludedFields
 
         return generatedFields;
     };
 }
 
-function getUnresolvedFields(graphQLType, typeResolver, ...excludedFields) {
-    return getTypeFields(
-        graphQLType,
-        (key, field) => !field.resolve,
-        typeResolver,
-        ...excludedFields);
+function getUnresolvedFieldsTypes(graphQLType, typeResolver, ...excludedFields) {
+    return () => {
+        const fields = getTypeFields(graphQLType, (key, field) => !field.resolve, typeResolver, ...excludedFields)();
+        const fieldsTypes = {};
+        Object.keys(fields).forEach(key => fieldsTypes[key] = { type: fields[key].type } );
+        return fieldsTypes;
+    };
 }
 
 function getInnerType(graphQLType) {
@@ -101,4 +103,4 @@ function clear(obj, ...excludedKeys) {
     }, {});
 }
 
-export { FICTIVE_INC, FICTIVE_SORT, cache, setSuffix, getUnresolvedFields, getTypeFields, getInnerType, clear, isListType, isScalarType };
+export { FICTIVE_INC, FICTIVE_SORT, cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, getInnerType, clear, isListType, isScalarType };

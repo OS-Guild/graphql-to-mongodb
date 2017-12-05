@@ -1,5 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType } from 'graphql';
-import { cache, setSuffix, getTypeFields, getUnresolvedFields, clear, FICTIVE_SORT } from './common';
+import { cache, setSuffix, getUnresolvedFieldsTypes, clear, FICTIVE_SORT } from './common';
 
 const sortTypesCache = {};
 
@@ -27,7 +27,7 @@ function getGraphQLSortType(graphQLType, ...excludedFields) {
 
 function getGraphQLSortTypeFields(graphQLType, ...excludedFields) {
     return () => {
-        const fields = getUnresolvedFields(graphQLType, getGraphQLSortType, ...excludedFields)();
+        const fields = getUnresolvedFieldsTypes(graphQLType, getGraphQLSortType, ...excludedFields)();
 
         if (Object.keys(fields).length > 0) {
             return fields;

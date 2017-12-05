@@ -1,4 +1,7 @@
 # Change Log
+##### 1.2.3
+- Fix projection bug
+---
 ##### 1.2.2
 - Projection now supports multiple of same field without alias
 ---

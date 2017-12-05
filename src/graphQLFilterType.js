@@ -1,5 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType } from 'graphql';
-import { cache, setSuffix, getUnresolvedFields } from './common';
+import { cache, setSuffix, getUnresolvedFieldsTypes } from './common';
 
 const filterTypesCache = {};
 const objectFilterTypesCache = {};
@@ -38,7 +38,7 @@ function getGraphQLFilterType(graphQLType, ...excludedFields) {
 
 function getOrAndFields(graphQLType, ...excludedFields) {
     return () => {
-        const generatedFields = getUnresolvedFields(graphQLType, getGraphQLObjectFilterType, ...excludedFields)();
+        const generatedFields = getUnresolvedFieldsTypes(graphQLType, getGraphQLObjectFilterType, ...excludedFields)();
 
         generatedFields['OR'] = { type: new GraphQLList(getGraphQLFilterType(graphQLType, ...excludedFields)) };
         generatedFields['AND'] = { type: new GraphQLList(getGraphQLFilterType(graphQLType, ...excludedFields)) };
@@ -70,7 +70,7 @@ function getGraphQLObjectFilterType(graphQLType, ...excludedFields) {
 
 function getInputObjectTypeFields(graphQLType, ...excludedFields) {
     return () => {
-        const generatedFields = getUnresolvedFields(graphQLType, getGraphQLObjectFilterType, ...excludedFields)();
+        const generatedFields = getUnresolvedFieldsTypes(graphQLType, getGraphQLObjectFilterType, ...excludedFields)();
 
         generatedFields['opr'] = { type: OprExistsType };
 

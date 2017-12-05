@@ -1,5 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLBoolean, GraphQLInt, GraphQLFloat } from 'graphql';
-import { FICTIVE_INC, cache, setSuffix, getUnresolvedFields, getTypeFields, clear } from './common';
+import { FICTIVE_INC, cache, setSuffix, getUnresolvedFieldsTypes, clear } from './common';
 
 const updateTypesCache = {};
 const inputTypesCache = {};
@@ -42,7 +42,7 @@ function getGraphQLInputType(graphQLType, ...excludedFields) {
 
     return cache(inputTypesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
-        fields: getUnresolvedFields(graphQLType, getGraphQLInputType, ...excludedFields)
+        fields: getUnresolvedFieldsTypes(graphQLType, getGraphQLInputType, ...excludedFields)
     }));
 }
 
@@ -57,7 +57,7 @@ function getGraphQLInsertType(graphQLType, ...excludedFields) {
 
 function getGraphQLInsertTypeFields(graphQLType, typeResolver, ...excludedFields) {
     return () => {
-        const fields = getUnresolvedFields(graphQLType, typeResolver, ...excludedFields)();
+        const fields = getUnresolvedFieldsTypes(graphQLType, typeResolver, ...excludedFields)();
 
         if (fields._id && fields._id.type instanceof GraphQLNonNull) {
             fields._id.type = fields._id.type.ofType;
@@ -86,7 +86,7 @@ function getGraphQLInsertTypeNested(graphQLType, ...excludedFields) {
 
     return cache(insertTypesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
-        fields: getUnresolvedFields(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)
+        fields: getUnresolvedFieldsTypes(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)
     }));
 }
 
@@ -119,7 +119,7 @@ function getGraphQLIncType(graphQLType, ...excludedFields) {
 
 function getGraphQLIncTypeFields(graphQLType, ...excludedFields) {
     return () => {
-        const fields = getUnresolvedFields(graphQLType, getGraphQLIncType, ...excludedFields)();
+        const fields = getUnresolvedFieldsTypes(graphQLType, getGraphQLIncType, ...excludedFields)();
 
         if (Object.keys(fields).length > 0) {
             return fields;

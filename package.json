@@ -1,7 +1,7 @@
 {
   "name": "graphql-to-mongodb-query",
-  "version": "1.2.2",
-  "description": "Allows for generic generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
+  "version": "1.2.3",
+  "description": "Allows for generic run-time generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
   "main": "lib/index.js",
   "scripts": {
     "test": "mocha --compilers js:babel-core/register  --timeout 60000 --recursive tests/unit --show-server-logs",
