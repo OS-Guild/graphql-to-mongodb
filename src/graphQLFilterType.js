@@ -1,9 +1,11 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType } from 'graphql';
-import { cache, setSuffix, getUnresolvedFieldsTypes } from './common';
+import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields } from './common';
+import { warn } from './logger';
 
 const filterTypesCache = {};
 const objectFilterTypesCache = {};
 const scalarFilterTypesCache = {};
+const warnedIndependentResolvers = {};
 
 const OprType = new GraphQLEnumType({
     name: 'Opr',
@@ -39,6 +41,7 @@ function getGraphQLFilterType(graphQLType, ...excludedFields) {
 function getOrAndFields(graphQLType, ...excludedFields) {
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(graphQLType, getGraphQLObjectFilterType, ...excludedFields)();
+        warnIndependentResolveFields(graphQLType);
 
         generatedFields['OR'] = { type: new GraphQLList(getGraphQLFilterType(graphQLType, ...excludedFields)) };
         generatedFields['AND'] = { type: new GraphQLList(getGraphQLFilterType(graphQLType, ...excludedFields)) };
@@ -71,6 +74,7 @@ function getGraphQLObjectFilterType(graphQLType, ...excludedFields) {
 function getInputObjectTypeFields(graphQLType, ...excludedFields) {
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(graphQLType, getGraphQLObjectFilterType, ...excludedFields)();
+        warnIndependentResolveFields(graphQLType);
 
         generatedFields['opr'] = { type: OprExistsType };
 
@@ -101,6 +105,19 @@ function getGraphQLScalarFilterTypeFields(graphQLScalarType) {
         NEQ: { type: graphQLScalarType },
         NIN: { type: new GraphQLList(graphQLScalarType) }
     };
+}
+
+function warnIndependentResolveFields(graphQLType) {
+    cache(warnedIndependentResolvers, graphQLType.toString(), () => {
+        const fields =
+            getTypeFields(graphQLType, (key, field) =>
+                field.resolve && !Array.isArray(field.dependencies))();
+
+        Object.keys(fields).forEach(key =>
+            warn(`Field ${key} of type ${graphQLType} has a resolve function and no dependencies`));
+
+        return 1;
+    });
 }
 
 function clearTypeCache() {

@@ -1,5 +1,6 @@
 import { isType, GraphQLScalarType, GraphQLEnumType } from 'graphql';
 import { getTypeFields, getInnerType, isListType, isScalarType } from './common';
+import { logError, warn } from './logger';
 
 const operatorsMongoDbKeys = {
     EQ: '$eq',
@@ -88,7 +89,7 @@ function parseMongoDbScalarFilter(graphQLFilter) {
             ////////////// DEPRECATED /////////////////////////////////////////
             if (key === 'opr') {
                 if (!dperecatedMessageSent) {
-                    console.warn('scalar filter "opr" field is deprecated, please switch to the operator fields')
+                    warn('scalar filter "opr" field is deprecated, please switch to the operator fields')
                     dperecatedMessageSent = true;
                 }
                 if (["$in", "$nin"].includes(element)) {
@@ -107,4 +108,4 @@ function parseMongoDbScalarFilter(graphQLFilter) {
     return mongoDbScalarFilter;
 }
 
-export default getMongoDbFilter;
+export default logError(getMongoDbFilter);

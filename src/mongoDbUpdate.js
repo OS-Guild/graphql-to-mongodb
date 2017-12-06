@@ -1,4 +1,5 @@
 import { FICTIVE_INC, clear } from './common';
+import { logError } from './logger';
 
 function getMongoDbUpdate(update) {
     return clear({
@@ -28,4 +29,4 @@ function flattenMongoDbSet(obj, path = []) {
         }));
 }
 
-export default getMongoDbUpdate;
+export default logError(getMongoDbUpdate);

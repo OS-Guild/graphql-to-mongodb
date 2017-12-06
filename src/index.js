@@ -7,6 +7,7 @@ import getGraphQLSortType from './graphQLSortType'
 import getMongoDbProjection from './mongoDbProjection'
 import { getMongoDbQueryResolver, getGraphQLQueryArgs } from './queryResolver'
 import { getMongoDbUpdateResolver, getGraphQLUpdateArgs } from './updateResolver'
+import { setLogger } from './logger'
 
 export { 
     getGraphQLFilterType, 
@@ -20,5 +21,6 @@ export {
     getMongoDbQueryResolver,
     getGraphQLQueryArgs,
     getMongoDbUpdateResolver,
-    getGraphQLUpdateArgs
+    getGraphQLUpdateArgs,
+    setLogger
 }

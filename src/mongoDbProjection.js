@@ -1,5 +1,6 @@
 import { getTypeFields, getInnerType } from './common';
 import { isType } from 'graphql';
+import { logError } from './logger';
 
 function getMongoDbProjection(fieldNodes, graphQLType, ...excludedFields) {
     if (!Array.isArray(fieldNodes)) throw 'First argument of "getMongoDbProjection" must be an array';
@@ -119,4 +120,4 @@ function mergeProjectionAndResolveDependencies(projection, resolveDependencies) 
     return newProjection;
 }
 
-export default getMongoDbProjection
+export default logError(getMongoDbProjection)
