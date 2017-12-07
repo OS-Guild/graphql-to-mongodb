@@ -1,8 +1,6 @@
-# graphql-to-mongodb-query
+# graphql-to-mongodb
 
 If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
-
-**Now with an extra 20% non-query capabilities!** (Psst - it's update and insert stuff)
 
 ### [Change Log](./CHANGELOG.md)
 

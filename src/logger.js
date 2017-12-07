@@ -1,5 +1,5 @@
 let logger = {
-    warn: (...args) => console.warn('\x1b[33m', 'graphql-to-mongodb-query warning:', '\x1b[0m', ...args)
+    warn: (...args) => console.warn('\x1b[33m', 'graphql-to-mongodb warning:', '\x1b[0m', ...args)
     //error: console.error;
 };
 
@@ -24,7 +24,7 @@ function logError(func) {
         try {
             return func.apply(this, args);
         } catch (exception) {
-            error('graphql-to-mongodb-query internal exception:', exception);
+            error('graphql-to-mongodb internal exception:', exception);
             throw exception;
         }
     }
