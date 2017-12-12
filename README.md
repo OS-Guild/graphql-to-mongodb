@@ -84,7 +84,7 @@ name: NameObjectFilterType
 OR: [PersonFilterType]
 AND: [PersonFilterType]
 ```
-\* Filtering is possilbe over every none resolve field!
+\* Filtering is possible over every none resolve field!
 
 **NameObjectFilterType:**
 ```
