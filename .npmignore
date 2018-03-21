@@ -1,3 +1,4 @@
 src/
 index.ts
 .gitignore
+tsconfig.json
