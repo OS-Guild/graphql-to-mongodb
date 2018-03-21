@@ -1,6 +1,6 @@
-import { isType, GraphQLScalarType, GraphQLEnumType } from 'graphql';
+import { isType, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType } from 'graphql';
 import { getTypeFields, getInnerType, isListType, isScalarType } from './common';
-import { logError, warn } from './logger';
+import { warn, logOnError } from './logger';
 
 const operatorsMongoDbKeys = {
     EQ: '$eq',
@@ -13,7 +13,13 @@ const operatorsMongoDbKeys = {
     NIN: '$nin',
 };
 
-function getMongoDbFilter(graphQLType, graphQLFilter = {}) {
+function getMongoDbFilterOuter(graphQLType: GraphQLObjectType, graphQLFilter: object = {}): object {
+    return logOnError(() => {
+        return getMongoDbFilter(graphQLType, graphQLFilter);
+    });
+}
+
+function getMongoDbFilter(graphQLType: GraphQLObjectType, graphQLFilter: object = {}): object {
     if (!isType(graphQLType)) throw 'First arg of getMongoDbFilter must be the base graphqlType to be parsed'
 
     const filter = parseMongoDbFilter(graphQLType, graphQLFilter, [], "OR", "AND");
@@ -28,14 +34,14 @@ function getMongoDbFilter(graphQLType, graphQLFilter = {}) {
     return filter;
 }
 
-function parseMongoDbFilter(graphQLType, graphQLFilter, path, ...excludedFields) {
-    const typeFields = getTypeFields(graphQLType)();
+function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path: string[], ...excludedFields: string[]): object {
+    const typeFields = getTypeFields(type)();
 
     return Object.assign({}, ...Object.keys(graphQLFilter)
         .filter(key => !excludedFields.includes(key) && key !== 'opr')
         .map(key => {
             const fieldFilter = graphQLFilter[key];
-            const fieldType = getInnerType(typeFields[key].type);
+            const fieldType: any = getInnerType(typeFields[key].type);
             const newPath = [...path, key];
             const filters = [];
 
@@ -55,14 +61,14 @@ function parseMongoDbFilter(graphQLType, graphQLFilter, path, ...excludedFields)
                     : {};
             }
 
-            return Object.assign({}, 
+            return Object.assign({},
                 parseMongoDbFieldFilter(fieldType, fieldFilter, newPath, ...excludedFields),
                 ...filters.map(_ => ({ [newPath.join('.')]: _ })));
         }));
 }
 
-function parseMongoDbFieldFilter(graphQLType, fieldFilter, path, ...excludedFields) {
-    if (isScalarType(graphQLType)) {
+function parseMongoDbFieldFilter(type: GraphQLObjectType, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
+    if (isScalarType(type)) {
         const elementFilter = parseMongoDbScalarFilter(fieldFilter);
 
         return Object.keys(elementFilter).length > 0
@@ -70,16 +76,16 @@ function parseMongoDbFieldFilter(graphQLType, fieldFilter, path, ...excludedFiel
             : {};
     }
 
-    return parseMongoDbFilter(graphQLType, fieldFilter, path, ...excludedFields);
+    return parseMongoDbFilter(type, fieldFilter, path, ...excludedFields);
 }
 
-function parseMongoExistsFilter(exists) {
+function parseMongoExistsFilter(exists: string): object {
     return { $exists: exists === 'exists' ? true : false };
 }
 
 let dperecatedMessageSent = false;
 
-function parseMongoDbScalarFilter(graphQLFilter) {
+function parseMongoDbScalarFilter(graphQLFilter: object): object {
     const mongoDbScalarFilter = {};
 
     Object.keys(graphQLFilter)
@@ -93,11 +99,11 @@ function parseMongoDbScalarFilter(graphQLFilter) {
                     dperecatedMessageSent = true;
                 }
                 if (["$in", "$nin"].includes(element)) {
-                    if (graphQLFilter.values) {
-                        mongoDbScalarFilter[element] = graphQLFilter.values;
+                    if (graphQLFilter['values']) {
+                        mongoDbScalarFilter[element] = graphQLFilter['values'];
                     }
-                } else if (graphQLFilter.value !== undefined) {
-                    mongoDbScalarFilter[element] = graphQLFilter.value;
+                } else if (graphQLFilter['value'] !== undefined) {
+                    mongoDbScalarFilter[element] = graphQLFilter['value'];
                 }
                 ///////////////////////////////////////////////////////////////////
             } else {
@@ -108,4 +114,4 @@ function parseMongoDbScalarFilter(graphQLFilter) {
     return mongoDbScalarFilter;
 }
 
-export default logError(getMongoDbFilter);
+export default getMongoDbFilterOuter;

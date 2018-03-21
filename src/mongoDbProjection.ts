@@ -1,28 +1,30 @@
 import { getTypeFields, getInnerType } from './common';
-import { isType } from 'graphql';
-import { logError } from './logger';
+import { isType, GraphQLType, FieldNode, GraphQLObjectType } from 'graphql';
+import { logOnError } from './logger';
 
-function getMongoDbProjection(fieldNodes, graphQLType, ...excludedFields) {
-    if (!Array.isArray(fieldNodes)) throw 'First argument of "getMongoDbProjection" must be an array';
-    if (!isType(graphQLType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
-    
-    const fieldNode = mergeAndSimplifyNodes(fieldNodes);
-    const projection = getProjection(fieldNode, graphQLType, [], ...excludedFields);
-    const resolveFields = getResolveFields(fieldNode, graphQLType);
-    const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveFields[_]));
-    return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
+function getMongoDbProjection(fieldNodes: FieldNode[], graphQLType: GraphQLObjectType, ...excludedFields: string[]): object {
+    return logOnError(() => {
+        if (!Array.isArray(fieldNodes)) throw 'First argument of "getMongoDbProjection" must be an array';
+        if (!isType(graphQLType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
+
+        const fieldNode = mergeAndSimplifyNodes(fieldNodes);
+        const projection = getProjection(fieldNode, graphQLType, [], ...excludedFields);
+        const resolveFields = getResolveFields(fieldNode, graphQLType);
+        const resolveFieldsDependencies = [].concat(...Object.keys(resolveFields).map(_ => resolveFields[_]));
+        return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
+    });
 }
 
-function mergeAndSimplifyNodes(nodes) {
-    const getFieldNodeFields = fieldNode => fieldNode.selectionSet.selections.filter(_ => _.kind == 'Field');
-    const getFieldName = fieldNode => fieldNode.name.value;
-    const isFieldNodeScalar = fieldNode => !fieldNode.selectionSet;
+function mergeAndSimplifyNodes(nodes: FieldNode[]): object {
+    const getFieldNodeFields = (fieldNode: FieldNode): FieldNode[] => fieldNode.selectionSet.selections.filter(_ => _.kind == 'Field').map(_ => _ as FieldNode);
+    const getFieldName = (fieldNode: FieldNode): string => fieldNode.name.value;
+    const isFieldNodeScalar = (fieldNode: FieldNode): boolean => !fieldNode.selectionSet;
 
-    const nodesFields = nodes
+    const nodesFields: { [argName: string]: FieldNode }[] = nodes
         .map(getFieldNodeFields)
         .map(_ => _.reduce((seed, curr) => ({ ...seed, [getFieldName(curr)]: curr }), {}));
 
-    const fieldsDictionary = {};
+    const fieldsDictionary: { [argName: string]: FieldNode[] } = {};
 
     nodesFields.forEach(nodeFields =>
         Object.keys(nodeFields).forEach(key => {
@@ -47,7 +49,7 @@ function mergeAndSimplifyNodes(nodes) {
     return node;
 }
 
-function getProjection(fieldNode, graphQLType, path, ...excludedFields) {
+function getProjection(fieldNode: object, graphQLType: GraphQLObjectType, path: string[] = [], ...excludedFields: string[]): object {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.assign({}, ...Object.keys(fieldNode)
@@ -62,11 +64,11 @@ function getProjection(fieldNode, graphQLType, path, ...excludedFields) {
                 return { [newPath.join(".")]: 1 };
             }
 
-            return getProjection(field, getInnerType(typeFields[key].type), newPath);
+            return getProjection(field, getInnerType(typeFields[key].type) as GraphQLObjectType, newPath);
         }));
 }
 
-function getResolveFields(fieldNode, graphQLType, path = []) {
+function getResolveFields(fieldNode: object, graphQLType: GraphQLObjectType, path: string[] = []): object {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.assign({}, ...Object.keys(fieldNode)
@@ -87,11 +89,11 @@ function getResolveFields(fieldNode, graphQLType, path = []) {
                 return {};
             }
 
-            return getResolveFields(field, getInnerType(typeField.type), newPath);
+            return getResolveFields(field, getInnerType(typeField.type) as GraphQLObjectType, newPath);
         }));
 }
 
-function mergeProjectionAndResolveDependencies(projection, resolveDependencies) {
+function mergeProjectionAndResolveDependencies(projection: object, resolveDependencies: string[]): object {
 
     const newProjection = { ...projection };
 
@@ -120,4 +122,4 @@ function mergeProjectionAndResolveDependencies(projection, resolveDependencies) 
     return newProjection;
 }
 
-export default logError(getMongoDbProjection)
+export default getMongoDbProjection

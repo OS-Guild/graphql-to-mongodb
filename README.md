@@ -3,6 +3,7 @@
 If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
 ### [Change Log](./CHANGELOG.md)
+### [Blog Post](https://blog.solutotlv.com/graphql-to-mongodb-or-how-i-learned-to-stop-worrying-and-love-generated-query-apis/?utm_source=README)
 
 ### Functionality galore!
 
@@ -18,6 +19,7 @@ If you want to give your Nodejs GraphQL service a whole lot of the power of the 
 *  ```getMongoDbUpdate```
 *  ```getMongoDbQueryResolver```
 *  ```getMongoDbUpdateResolver```
+*  ```setLogger```
 
 ### But... Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 

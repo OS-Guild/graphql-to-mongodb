@@ -1,4 +1,9 @@
 # Change Log
+### 1.3.0
+- Renameed package and repository
+- TypeScript!
+- Log warn and error callbacks
+---
 ##### 1.2.3
 - Fix projection bug
 ---
