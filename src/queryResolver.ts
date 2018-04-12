@@ -18,14 +18,14 @@ export interface QueryCallback<TSource, TContext> {
     ): Promise<any>
 }
 
-export function getMongoDbQueryResolver<TSource, TContext>(graphQLType: GraphQLObjectType, queryCallback: QueryCallback<TSource, TContext>)
+export function getMongoDbQueryResolver<TSource, TContext>(graphQLType: GraphQLObjectType, queryCallback: QueryCallback<TSource, TContext>, differentOutputType: boolean = false)
     : GraphQLFieldResolver<TSource, TContext> {
     if (!isType(graphQLType)) throw 'getMongoDbQueryResolver must recieve a graphql type'
     if (typeof queryCallback !== 'function') throw 'getMongoDbQueryResolver must recieve a queryCallback function'
 
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
-        const projection = getMongoDbProjection(info.fieldNodes, graphQLType);
+        const projection = differentOutputType ? null : getMongoDbProjection(info.fieldNodes,graphQLType);
         const options: { sort?: object, limit?: number, skip?: number } = {};
         if (args.sort) options.sort = clear(args.sort, FICTIVE_SORT);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;
