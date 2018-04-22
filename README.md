@@ -67,6 +67,11 @@ You'll notice that integrating the package takes little more than adding some fa
     }
     ```
     This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
+*  As of `mongodb` package version 3.0, you should implement the resolve callback as:
+   ```js
+   options.projection = projection;
+   return await context.db.collection('persons').find(filter, options).toArray();
+   ```
 
 ### That's it!
 
