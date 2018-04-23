@@ -18,7 +18,16 @@ export interface UpdateCallback<TSource, TContext> {
     ): Promise<any>
 }
 
-export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQLObjectType, updateCallback: UpdateCallback<TSource, TContext>, differentOutputType: boolean = true)
+
+export interface UpdateOptions {
+  differentOutputType: boolean
+}
+
+const defaultOptions: UpdateOptions = {
+  differentOutputType: false
+};
+
+export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQLObjectType, updateCallback: UpdateCallback<TSource, TContext>, updateOptions: UpdateOptions = defaultOptions)
     : GraphQLFieldResolver<TSource, TContext> {
     if (!isType(graphQLType)) throw 'getMongoDbUpdateResolver must recieve a graphql type';
     if (typeof updateCallback !== 'function') throw 'getMongoDbUpdateResolver must recieve an updateCallback';
@@ -26,7 +35,8 @@ export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQL
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update);
-        const projection = differentOutputType ? null : getMongoDbProjection(info.fieldNodes, graphQLType);
+        let projection;
+        if(!updateOptions.differentOutputType) projection = getMongoDbProjection(info.fieldNodes, graphQLType);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, source, args, context, info);
     };
 }
