@@ -4,5 +4,7 @@ node_js:
   - 5
 install:
   - npm install
+before_script:
+  - npm install -g tsc
 script:
   - npm run build
