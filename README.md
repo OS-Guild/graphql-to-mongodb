@@ -1,4 +1,5 @@
-# graphql-to-mongodb
+# graphql-to-mongodb 
+[![Build Status](https://travis-ci.org/Soluto/graphql-to-mongodb.svg?branch=master)](https://travis-ci.org/Soluto/graphql-to-mongodb)
 
 If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
