@@ -16,15 +16,14 @@ export interface UpdateCallback<TSource, TContext> {
         context: TContext,
         info: GraphQLResolveInfo
     ): Promise<any>
-}
-
+};
 
 export interface UpdateOptions {
-  differentOutputType: boolean
-}
+    differentOutputType: boolean
+};
 
 const defaultOptions: UpdateOptions = {
-  differentOutputType: false
+    differentOutputType: false
 };
 
 export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQLObjectType, updateCallback: UpdateCallback<TSource, TContext>, updateOptions: UpdateOptions = defaultOptions)
@@ -35,8 +34,7 @@ export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQL
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update);
-        let projection;
-        if(!updateOptions.differentOutputType) projection = getMongoDbProjection(info.fieldNodes, graphQLType);
+        let projection = updateOptions.differentOutputType ? null : getMongoDbProjection(info.fieldNodes, graphQLType);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, source, args, context, info);
     };
 }

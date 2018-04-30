@@ -16,14 +16,14 @@ export interface QueryCallback<TSource, TContext> {
         context: TContext,
         info: GraphQLResolveInfo
     ): Promise<any>
-}
+};
 
 export interface QueryOptions {
-  differentOutputType: boolean
-}
+    differentOutputType: boolean
+};
 
 const defaultOptions: QueryOptions = {
-  differentOutputType: false
+    differentOutputType: false
 };
 
 export function getMongoDbQueryResolver<TSource, TContext>(graphQLType: GraphQLObjectType, queryCallback: QueryCallback<TSource, TContext>, queryOptions: QueryOptions = defaultOptions)
@@ -33,8 +33,7 @@ export function getMongoDbQueryResolver<TSource, TContext>(graphQLType: GraphQLO
 
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
-        let projection;
-        if(!queryOptions.differentOutputType) projection = getMongoDbProjection(info.fieldNodes, graphQLType);
+        let projection = queryOptions.differentOutputType ? null : getMongoDbProjection(info.fieldNodes, graphQLType);
         const options: { sort?: object, limit?: number, skip?: number } = {};
         if (args.sort) options.sort = clear(args.sort, FICTIVE_SORT);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;
