@@ -11,6 +11,8 @@ const operatorsMongoDbKeys = {
     LTE: '$lte',
     NEQ: '$ne',
     NIN: '$nin',
+    REGEX: '$regex',
+    OPTIONS: '$options',
 };
 
 function getMongoDbFilterOuter(graphQLType: GraphQLObjectType, graphQLFilter: object = {}): object {
@@ -89,7 +91,7 @@ function parseMongoDbScalarFilter(graphQLFilter: object): object {
     const mongoDbScalarFilter = {};
 
     Object.keys(graphQLFilter)
-        .filter(key => key !== 'value' && key !== 'values')
+        .filter(key => key !== 'value' && key !== 'values' && key !== 'OPTIONS')
         .forEach(key => {
             const element = graphQLFilter[key];
             ////////////// DEPRECATED /////////////////////////////////////////
@@ -108,6 +110,10 @@ function parseMongoDbScalarFilter(graphQLFilter: object): object {
                 ///////////////////////////////////////////////////////////////////
             } else {
                 mongoDbScalarFilter[operatorsMongoDbKeys[key]] = element;
+
+                if (key === 'REGEX' && graphQLFilter['OPTIONS']) {
+                    mongoDbScalarFilter[operatorsMongoDbKeys['OPTIONS']] = graphQLFilter['OPTIONS'];
+                }
             }
         });
 

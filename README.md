@@ -141,7 +141,8 @@ Queries the first 50 persons, oldest first,  over the age of 18, and whose first
         sort: { age: DESC },
         pagination: { limit: 50 }
     ) {
-    fullName
-    age
+        fullName
+        age
+    }
 }
 ```

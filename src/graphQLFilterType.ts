@@ -1,4 +1,4 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLFieldMap } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, GraphQLType } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap } from './common';
 import { warn } from './logger';
 
@@ -89,15 +89,16 @@ function getGraphQLScalarFilterType(scalarType: GraphQLScalarType | GraphQLEnumT
 
     return cache(scalarFilterTypesCache, typeName, () => new GraphQLInputObjectType({
         name: typeName,
+        description: `Filter type for ${typeName} scalar`,
         fields: getGraphQLScalarFilterTypeFields(scalarType)
     }));
 }
 
-function getGraphQLScalarFilterTypeFields(scalarType: GraphQLScalarType | GraphQLEnumType) {
-    return {
-        opr: { type: OprType, deprecationReason: 'Switched to the more intuitive operator fields' },
-        value: { type: scalarType, deprecationReason: 'Switched to the more intuitive operator fields' },
-        values: { type: new GraphQLList(scalarType), deprecationReason: 'Switched to the more intuitive operator fields' },
+function getGraphQLScalarFilterTypeFields(scalarType: GraphQLScalarType | GraphQLEnumType): GraphQLInputFieldConfigMap {
+    const fields = {
+        opr: { type: OprType, description: 'DEPRECATED: Switched to the more intuitive operator fields' },
+        value: { type: scalarType, description: 'DEPRECATED: Switched to the more intuitive operator fields' },
+        values: { type: new GraphQLList(scalarType), description: 'DEPRECATED: Switched to the more intuitive operator fields' },
         EQ: { type: scalarType },
         GT: { type: scalarType },
         GTE: { type: scalarType },
@@ -107,6 +108,15 @@ function getGraphQLScalarFilterTypeFields(scalarType: GraphQLScalarType | GraphQ
         NEQ: { type: scalarType },
         NIN: { type: new GraphQLList(scalarType) }
     };
+
+    if (scalarType.name === 'String') enhanceWithRegexFields(fields);
+
+    return fields;
+}
+
+function enhanceWithRegexFields(fields: GraphQLInputFieldConfigMap): void {
+    fields.REGEX = { type: GraphQLString, description: 'Regex expression' };
+    fields.OPTIONS = { type: GraphQLString, description: 'Modifiers for the regex expression. Will be ignored on its own' };
 }
 
 function warnIndependentResolveFields(type: GraphQLObjectType): void {

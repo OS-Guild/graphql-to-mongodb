@@ -1,4 +1,10 @@
 # Change Log
+##### 1.3.3
+- Add regex operator
+---
+##### 1.3.2
+- Can get different output type from resolver and omit projection
+---
 ##### 1.3.1
 - Fix type declarations in package
 ---
