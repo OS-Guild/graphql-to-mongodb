@@ -6,23 +6,7 @@ If you want to give your Nodejs GraphQL service a whole lot of the power of the 
 ### [Change Log](./CHANGELOG.md)
 ### [Blog Post](https://blog.solutotlv.com/graphql-to-mongodb-or-how-i-learned-to-stop-worrying-and-love-generated-query-apis/?utm_source=README)
 
-### Functionality galore!
-
-*  ```getGraphQLFilterType``` 
-*  ```getGraphQLSortType```
-*  ```getGraphQLUpdateType```
-*  ```getGraphQLInsertType``` 
-*  ```getGraphQLQueryArgs```
-*  ```getGraphQLUpdateArgs```
-*  ```GraphQLPaginationType```
-*  ```getMongoDbFilter```
-*  ```getMongoDbProjection```
-*  ```getMongoDbUpdate```
-*  ```getMongoDbQueryResolver```
-*  ```getMongoDbUpdateResolver```
-*  ```setLogger```
-
-### But... Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
+### Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 
 **Given a simple GraphQL type:**
 ```js
@@ -146,3 +130,20 @@ Queries the first 50 persons, oldest first,  over the age of 18, and whose first
     }
 }
 ```
+
+### Aside from the mentioned above, the package comes with functionality galore!
+
+*  ```getGraphQLFilterType``` 
+*  ```getGraphQLSortType```
+*  ```getGraphQLUpdateType```
+*  ```getGraphQLInsertType``` 
+*  ```getGraphQLQueryArgs```
+*  ```getGraphQLUpdateArgs```
+*  ```GraphQLPaginationType```
+*  ```getMongoDbFilter```
+*  ```getMongoDbProjection```
+*  ```getMongoDbUpdate```
+*  ```getMongoDbSort```
+*  ```getMongoDbQueryResolver```
+*  ```getMongoDbUpdateResolver```
+*  ```setLogger```
