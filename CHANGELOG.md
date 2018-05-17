@@ -1,4 +1,7 @@
 # Change Log
+##### 1.3.4
+- Fix a bug where a malformed sort param is produced when sorting by nested fields
+---
 ##### 1.3.3
 - Add regex operator
 ---
