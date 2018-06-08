@@ -22,6 +22,7 @@
     "@types/graphql": "^0.12.4"
   },
   "peerDependencies": {
-    "graphql": ">=0.10"
+    "graphql": ">=0.10",
+    "mongodb": ">=2.2"
   }
 }

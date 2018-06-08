@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb';
 import { isType, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType } from 'graphql';
 import { getTypeFields, getInnerType, isListType, isScalarType } from './common';
 import { warn, logOnError } from './logger';
@@ -71,7 +72,7 @@ function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path
 
 function parseMongoDbFieldFilter(type: GraphQLObjectType, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
     if (isScalarType(type)) {
-        const elementFilter = parseMongoDbScalarFilter(fieldFilter);
+        const elementFilter = parseMongoDbScalarFilter(type, fieldFilter);
 
         return Object.keys(elementFilter).length > 0
             ? { [path.join(".")]: elementFilter }
@@ -87,7 +88,7 @@ function parseMongoExistsFilter(exists: string): object {
 
 let dperecatedMessageSent = false;
 
-function parseMongoDbScalarFilter(graphQLFilter: object): object {
+function parseMongoDbScalarFilter(type: GraphQLObjectType, graphQLFilter: object): object {
     const mongoDbScalarFilter = {};
 
     Object.keys(graphQLFilter)
@@ -109,7 +110,8 @@ function parseMongoDbScalarFilter(graphQLFilter: object): object {
                 }
                 ///////////////////////////////////////////////////////////////////
             } else {
-                mongoDbScalarFilter[operatorsMongoDbKeys[key]] = element;
+                const value = type.name === 'ObjID' ? ObjectId(element) : element;
+                mongoDbScalarFilter[operatorsMongoDbKeys[key]] = value;
 
                 if (key === 'REGEX' && graphQLFilter['OPTIONS']) {
                     mongoDbScalarFilter[operatorsMongoDbKeys['OPTIONS']] = graphQLFilter['OPTIONS'];
