@@ -20,8 +20,10 @@
   "homepage": "https://github.com/Soluto/graphql-to-mongodb#readme",
   "devDependencies": {
     "@types/graphql": "^0.12.4"
+    "@types/mongodb": "^2.2.0"
   },
   "peerDependencies": {
-    "graphql": ">=0.10"
+    "graphql": ">=0.10",
+    "mongodb": ">=2.2"
   }
 }
