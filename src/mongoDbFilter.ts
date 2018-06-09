@@ -70,9 +70,10 @@ function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path
         }));
 }
 
-function parseMongoDbFieldFilter(type: GraphQLObjectType, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
+// GraphQLObjectType
+function parseMongoDbFieldFilter(type: any, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
     if (isScalarType(type)) {
-        const elementFilter = parseMongoDbScalarFilter(type, fieldFilter);
+        const elementFilter = parseMongoDbScalarFilter(type as GraphQLScalarType, fieldFilter);
 
         return Object.keys(elementFilter).length > 0
             ? { [path.join(".")]: elementFilter }
@@ -88,9 +89,8 @@ function parseMongoExistsFilter(exists: string): object {
 
 let dperecatedMessageSent = false;
 
-function parseMongoDbScalarFilter(type: GraphQLObjectType, graphQLFilter: object): object {
+function parseMongoDbScalarFilter(type: GraphQLScalarType, graphQLFilter: object): object {
     const mongoDbScalarFilter = {};
-
     Object.keys(graphQLFilter)
         .filter(key => key !== 'value' && key !== 'values' && key !== 'OPTIONS')
         .forEach(key => {
@@ -110,9 +110,13 @@ function parseMongoDbScalarFilter(type: GraphQLObjectType, graphQLFilter: object
                 }
                 ///////////////////////////////////////////////////////////////////
             } else {
-                const value = type.name === 'ObjID' ? new ObjectId(element) : element;
+                let value;
+                if (Array.isArray(element)) {
+                    value = element.map((item) => type.parseValue(item));
+                } else {
+                    value = type.parseValue(element);
+                }
                 mongoDbScalarFilter[operatorsMongoDbKeys[key]] = value;
-
                 if (key === 'REGEX' && graphQLFilter['OPTIONS']) {
                     mongoDbScalarFilter[operatorsMongoDbKeys['OPTIONS']] = graphQLFilter['OPTIONS'];
                 }
