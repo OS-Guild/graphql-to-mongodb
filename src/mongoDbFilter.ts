@@ -1,4 +1,3 @@
-import { ObjectId } from 'mongodb';
 import { isType, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType } from 'graphql';
 import { getTypeFields, getInnerType, isListType, isScalarType } from './common';
 import { warn, logOnError } from './logger';
@@ -70,10 +69,10 @@ function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path
         }));
 }
 
-// GraphQLObjectType
-function parseMongoDbFieldFilter(type: any, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
+function parseMongoDbFieldFilter(type: GraphQLObjectType, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
     if (isScalarType(type)) {
-        const elementFilter = parseMongoDbScalarFilter(type as GraphQLScalarType, fieldFilter);
+        const scalarType: GraphQLScalarType = <any>type;
+        const elementFilter = parseMongoDbScalarFilter(scalarType, fieldFilter);
 
         return Object.keys(elementFilter).length > 0
             ? { [path.join(".")]: elementFilter }

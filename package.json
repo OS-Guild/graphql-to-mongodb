@@ -1,6 +1,6 @@
 {
-  "name": "graphql-to-mongodb",
-  "version": "1.3.4",
+  "name": "@prinzdezibel/graphql-to-mongodb",
+  "version": "1.3.6",
   "description": "Allows for generic run-time generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -20,10 +20,8 @@
   "homepage": "https://github.com/Soluto/graphql-to-mongodb#readme",
   "devDependencies": {
     "@types/graphql": "^0.12.4"
-    "@types/mongodb": "^2.2.0"
   },
   "peerDependencies": {
-    "graphql": ">=0.10",
-    "mongodb": ">=2.2"
+    "graphql": ">=0.10"
   }
 }
