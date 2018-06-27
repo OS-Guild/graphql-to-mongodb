@@ -51,7 +51,7 @@ function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path
                 filters.push(parseMongoExistsFilter(fieldFilter.opr));
             }
 
-            if (isListType(typeFields[key].type)) {
+            if (!isScalarType(fieldType) && isListType(typeFields[key].type)) {
                 const elementFilter = parseMongoDbFieldFilter(fieldType, fieldFilter, [], ...excludedFields);
 
                 if (Object.keys(elementFilter).length > 0) {
