@@ -1,4 +1,7 @@
 # Change Log
+##### 1.3.5
+- Fix a bug in parsing a scalar array filter
+---
 ##### 1.3.4
 - Fix a bug where a malformed sort param is produced when sorting by nested fields
 ---
@@ -23,7 +26,7 @@
 - Projection now supports multiple of same field without alias
 ---
 ##### 1.2.1
-- Array items have full filtering range through the `$mathElem` operator
+- Array items have full filtering range through the `$elemMatch` operator
 - Change log added
 ---
 ### 1.2.0
