@@ -1,4 +1,7 @@
 # Change Log
+#### 1.4.0
+- Add Support for FragmentSpread in projection
+---
 ##### 1.3.5
 - Fix a bug in parsing a scalar array filter
 ---
