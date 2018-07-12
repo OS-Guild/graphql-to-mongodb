@@ -40,7 +40,7 @@ export function getMongoDbQueryResolver<TSource, TContext>(graphQLType: GraphQLO
 
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
-        const projection = queryOptions.differentOutputType ? undefined : getMongoDbProjection(info.fieldNodes, graphQLType);
+        const projection = queryOptions.differentOutputType ? undefined : getMongoDbProjection(info, graphQLType);
         const options: MongoDbOptions = {};
         if (args.sort) options.sort = getMongoDbSort(args.sort);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;

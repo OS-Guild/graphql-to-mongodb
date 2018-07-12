@@ -138,3 +138,7 @@ export function clear(obj: object, ...excludedKeys: string[]): object {
         return cleared;
     }, {});
 }
+
+export function flatten<T>(nestedArray: T[][]) : T[] {
+    return nestedArray.reduce((agg, b) => agg.concat(b), []);
+}
