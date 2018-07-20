@@ -125,7 +125,7 @@ function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObje
                 return agg;
             }
 
-            return [...agg, ...getResolveFieldsDependencies(field, getInnerType(typeField.type) as GraphQLObjectType)];
+            return [...agg, ...getResolveFieldsDependencies(field, getInnerType(typeField.type) as GraphQLObjectType).map(f => key + '.' + f)];
         }, []);
 }
 
