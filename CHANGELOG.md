@@ -1,5 +1,8 @@
 # Change Log
-#### 1.4.0
+##### 1.4.1
+- Fix a bug in resolve dependencies projection
+---
+### 1.4.0
 - Add Support for FragmentSpread in projection
 ---
 ##### 1.3.5
