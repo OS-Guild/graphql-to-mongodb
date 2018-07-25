@@ -28,7 +28,7 @@ function getMongoDbProjection(info: GraphQLResolveInfo, graphQLType: GraphQLObje
         const field = mergeNodes(simplifiedNodes);
 
         const projection = getProjection(field, graphQLType, [], ...excludedFields);
-        
+
         const resolveFieldsDependencies = getResolveFieldsDependencies(field, graphQLType);
         return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
     });
@@ -116,18 +116,16 @@ function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObje
         .filter(key => key !== "__typename")
         .reduce((agg, key) => {
             const field = fieldNode[key];
+            const typeField = typeFields[key];
 
             if (field === 1) {
+                if (typeField.resolve && Array.isArray(typeField.dependencies)) {
+                    return [...agg, ...typeField.dependencies];
+                }
                 return agg;
             }
 
-            const typeField = typeFields[key];
-
-            if (typeField.resolve && Array.isArray(typeField.dependencies)) {
-                return [...agg, ...typeField.dependencies];
-            }
-
-            return [...agg, ...getResolveFieldsDependencies(field, getInnerType(typeField.type) as GraphQLObjectType)];
+            return [...agg, ...getResolveFieldsDependencies(field, getInnerType(typeField.type) as GraphQLObjectType).map(f => key + '.' + f)];
         }, []);
 }
 
