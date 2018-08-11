@@ -1,27 +1,12 @@
-# graphql-to-mongodb
+# graphql-to-mongodb 
+[![Build Status](https://travis-ci.org/Soluto/graphql-to-mongodb.svg?branch=master)](https://travis-ci.org/Soluto/graphql-to-mongodb)
 
 If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
 ### [Change Log](./CHANGELOG.md)
 ### [Blog Post](https://blog.solutotlv.com/graphql-to-mongodb-or-how-i-learned-to-stop-worrying-and-love-generated-query-apis/?utm_source=README)
 
-### Functionality galore!
-
-*  ```getGraphQLFilterType``` 
-*  ```getGraphQLSortType```
-*  ```getGraphQLUpdateType```
-*  ```getGraphQLInsertType``` 
-*  ```getGraphQLQueryArgs```
-*  ```getGraphQLUpdateArgs```
-*  ```GraphQLPaginationType```
-*  ```getMongoDbFilter```
-*  ```getMongoDbProjection```
-*  ```getMongoDbUpdate```
-*  ```getMongoDbQueryResolver```
-*  ```getMongoDbUpdateResolver```
-*  ```setLogger```
-
-### But... Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
+### Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 
 **Given a simple GraphQL type:**
 ```js
@@ -67,6 +52,11 @@ You'll notice that integrating the package takes little more than adding some fa
     }
     ```
     This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
+*  As of `mongodb` package version 3.0, you should implement the resolve callback as:
+   ```js
+   options.projection = projection;
+   return await context.db.collection('persons').find(filter, options).toArray();
+   ```
 
 ### That's it!
 
@@ -135,7 +125,25 @@ Queries the first 50 persons, oldest first,  over the age of 18, and whose first
         sort: { age: DESC },
         pagination: { limit: 50 }
     ) {
-    fullName
-    age
+        fullName
+        age
+    }
 }
 ```
+
+### Aside from the mentioned above, the package comes with functionality galore!
+
+*  ```getGraphQLFilterType``` 
+*  ```getGraphQLSortType```
+*  ```getGraphQLUpdateType```
+*  ```getGraphQLInsertType``` 
+*  ```getGraphQLQueryArgs```
+*  ```getGraphQLUpdateArgs```
+*  ```GraphQLPaginationType```
+*  ```getMongoDbFilter```
+*  ```getMongoDbProjection```
+*  ```getMongoDbUpdate```
+*  ```getMongoDbSort```
+*  ```getMongoDbQueryResolver```
+*  ```getMongoDbUpdateResolver```
+*  ```setLogger```

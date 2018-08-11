@@ -1,4 +1,6 @@
 src/
 index.ts
 .gitignore
+.travis.yml
+CHANGELOG.md
 tsconfig.json

@@ -3,28 +3,27 @@ import { getGraphQLUpdateType } from './graphQLMutationType';
 import getMongoDbFilter from './mongoDbFilter';
 import getMongoDbUpdate from './mongoDbUpdate';
 import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
-import getMongoDbProjection from './mongoDbProjection';
+import getMongoDbProjection, { MongoDbProjection } from './mongoDbProjection';
 
 export interface UpdateCallback<TSource, TContext> {
     (
         filter: object,
         update: object,
         options: object,
-        projection: object,
+        projection: MongoDbProjection | undefined,
         source: TSource,
         args: { [argName: string]: any },
         context: TContext,
         info: GraphQLResolveInfo
     ): Promise<any>
-}
-
+};
 
 export interface UpdateOptions {
-  differentOutputType: boolean
-}
+    differentOutputType: boolean
+};
 
 const defaultOptions: UpdateOptions = {
-  differentOutputType: false
+    differentOutputType: false
 };
 
 export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQLObjectType, updateCallback: UpdateCallback<TSource, TContext>, updateOptions: UpdateOptions = defaultOptions)
@@ -35,8 +34,7 @@ export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQL
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
         const mongoUpdate = getMongoDbUpdate(args.update);
-        let projection;
-        if(!updateOptions.differentOutputType) projection = getMongoDbProjection(info.fieldNodes, graphQLType);
+        const projection = updateOptions.differentOutputType ? undefined : getMongoDbProjection(info, graphQLType);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, source, args, context, info);
     };
 }

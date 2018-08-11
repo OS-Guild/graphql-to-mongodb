@@ -1,4 +1,22 @@
 # Change Log
+##### 1.4.1
+- Fix a bug in resolve dependencies projection
+---
+### 1.4.0
+- Add Support for FragmentSpread in projection
+---
+##### 1.3.5
+- Fix a bug in parsing a scalar array filter
+---
+##### 1.3.4
+- Fix a bug where a malformed sort param is produced when sorting by nested fields
+---
+##### 1.3.3
+- Add regex operator
+---
+##### 1.3.2
+- Can get different output type from resolver and omit projection
+---
 ##### 1.3.1
 - Fix type declarations in package
 ---
@@ -14,7 +32,7 @@
 - Projection now supports multiple of same field without alias
 ---
 ##### 1.2.1
-- Array items have full filtering range through the `$mathElem` operator
+- Array items have full filtering range through the `$elemMatch` operator
 - Change log added
 ---
 ### 1.2.0

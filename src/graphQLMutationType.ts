@@ -53,13 +53,13 @@ export function getGraphQLInsertType(graphQLType: GraphQLObjectType, ...excluded
 
     return cache(insertTypesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
-        fields: getGraphQLInsertTypeFields(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)
+        fields: getGraphQLInsertTypeFields(graphQLType, ...excludedFields)
     }));
 }
 
-function getGraphQLInsertTypeFields(graphQLType: GraphQLObjectType, typeResolver: TypeResolver<GraphQLInputType>, ...excludedFields: string[]) : () => FieldMap<GraphQLInputType> {
+function getGraphQLInsertTypeFields(graphQLType: GraphQLObjectType, ...excludedFields: string[]) : () => FieldMap<GraphQLInputType> {
     return () => {
-        const fields = getUnresolvedFieldsTypes(graphQLType, typeResolver, ...excludedFields)();
+        const fields = getUnresolvedFieldsTypes(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)();
 
         const idField = fields['_id'];
 
