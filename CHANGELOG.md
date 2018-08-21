@@ -1,4 +1,7 @@
 # Change Log
+##### 1.4.3
+- Fix yet another bug in resolve dependencies projection
+---
 ##### 1.4.2
 - Fix a bug in array mutation 
 ---
