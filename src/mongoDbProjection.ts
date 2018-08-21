@@ -118,10 +118,15 @@ function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObje
             const field = fieldNode[key];
             const typeField = typeFields[key];
 
-            if (field === 1) {
-                if (typeField.resolve && Array.isArray(typeField.dependencies)) {
+            if (typeField.resolve) {
+                if (Array.isArray(typeField.dependencies)) {
                     return [...agg, ...typeField.dependencies];
                 }
+
+                return agg;
+            }
+
+            if (field === 1) {
                 return agg;
             }
 
