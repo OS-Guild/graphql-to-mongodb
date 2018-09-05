@@ -117,7 +117,15 @@ export function isScalarType(graphQLType: GraphQLType): boolean {
 
 export function clear(obj: object, ...excludedKeys: string[]): object {
     if (Array.isArray(obj)) {
-        return obj.map(value => clear(value, ...excludedKeys));
+        return obj.map(value => {
+            if (typeof value != 'object' ||
+                value instanceof Date ||
+                isType(value)) {
+                return value;
+            }
+
+            return clear(value, ...excludedKeys);
+        });
     }
 
     return Object.keys(obj).reduce((cleared, key) => {
