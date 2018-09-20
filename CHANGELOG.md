@@ -1,4 +1,7 @@
 # Change Log
+##### 1.4.4
+- Bug fix
+---
 ##### 1.4.3
 - Fix yet another bug in resolve dependencies projection
 ---
