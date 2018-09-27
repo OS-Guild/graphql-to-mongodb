@@ -3,7 +3,7 @@ import { getGraphQLUpdateType } from './graphQLMutationType';
 import getMongoDbFilter from './mongoDbFilter';
 import getMongoDbUpdate from './mongoDbUpdate';
 import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
-import getMongoDbProjection, { MongoDbProjection } from './mongoDbProjection';
+import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 
 export interface UpdateCallback<TSource, TContext> {
     (
