@@ -1,5 +1,5 @@
 import getMongoDbFilter from './mongoDbFilter';
-import getMongoDbProjection, { MongoDbProjection } from './mongoDbProjection';
+import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 import { getGraphQLFilterType } from './graphQLFilterType';
 import getGraphQLSortType from './graphQLSortType';
 import GraphQLPaginationType from './graphQLPaginationType';

@@ -6,7 +6,7 @@ export interface MongoDbProjection {
     [key: string]: 1
 };
 
-interface Field {
+export interface Field {
     [key: string]: Field | 1
 }
 
@@ -18,20 +18,23 @@ interface FragmentDictionary {
     [key: string]: FieldGraph[]
 }
 
-function getMongoDbProjection(info: GraphQLResolveInfo, graphQLType: GraphQLObjectType, ...excludedFields: string[]): MongoDbProjection {
-    return logOnError(() => {
-        if (!Object.keys(info).includes('fieldNodes')) throw 'First argument of "getMongoDbProjection" must be a GraphQLResolveInfo';
-        if (!isType(graphQLType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
+export const getMongoDbProjection = logOnError((info: GraphQLResolveInfo, graphQLType: GraphQLObjectType, ...excludedFields: string[]): MongoDbProjection => {
+    if (!Object.keys(info).includes('fieldNodes')) throw 'First argument of "getMongoDbProjection" must be a GraphQLResolveInfo';
+    if (!isType(graphQLType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
 
-        const selections = flatten(info.fieldNodes.map(_ => _.selectionSet.selections));
-        const simplifiedNodes = simplifyNodes({ selections: selections }, info);
-        const field = mergeNodes(simplifiedNodes);
+    const requestedFields = getRequestedFields(info);
 
-        const projection = getProjection(field, graphQLType, [], ...excludedFields);
+    const projection = getProjection(requestedFields, graphQLType, [], ...excludedFields);
 
-        const resolveFieldsDependencies = getResolveFieldsDependencies(field, graphQLType);
-        return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
-    });
+    const resolveFieldsDependencies = getResolveFieldsDependencies(requestedFields, graphQLType);
+
+    return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
+});
+
+export function getRequestedFields(info: GraphQLResolveInfo): Field {
+    const selections = flatten(info.fieldNodes.map(_ => _.selectionSet.selections));
+    const simplifiedNodes = simplifyNodes({ selections: selections }, info);
+    return mergeNodes(simplifiedNodes);
 }
 
 function simplifyNodes(selectionSetNode: { selections: SelectionNode[] }, info: GraphQLResolveInfo, dictionary: FragmentDictionary = {}): FieldGraph[] {
@@ -90,7 +93,7 @@ function mergeNodes(fieldGraphs: FieldGraph[]): Field {
     }, {});
 }
 
-function getProjection(fieldNode: Field, graphQLType: GraphQLObjectType, path: string[] = [], ...excludedFields: string[]): MongoDbProjection {
+export function getProjection(fieldNode: Field, graphQLType: GraphQLObjectType, path: string[] = [], ...excludedFields: string[]): MongoDbProjection {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.assign({}, ...Object.keys(fieldNode)
@@ -109,7 +112,7 @@ function getProjection(fieldNode: Field, graphQLType: GraphQLObjectType, path: s
         }));
 }
 
-function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObjectType): string[] {
+export function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObjectType): string[] {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.keys(fieldNode)
@@ -134,7 +137,7 @@ function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObje
         }, []);
 }
 
-function mergeProjectionAndResolveDependencies(projection: MongoDbProjection, resolveDependencies: string[]): MongoDbProjection {
+export function mergeProjectionAndResolveDependencies(projection: MongoDbProjection, resolveDependencies: string[]): MongoDbProjection {
 
     const newProjection = { ...projection };
 
@@ -147,11 +150,11 @@ function mergeProjectionAndResolveDependencies(projection: MongoDbProjection, re
             continue;
         }
 
-        if (projectionKeys.some(key => new RegExp(`^${key}.`).test(dependency))) {
+        if (projectionKeys.some(key => new RegExp(`^${key}[.]`).test(dependency))) {
             continue;
         }
 
-        const regex = new RegExp(`^${dependency}.`)
+        const regex = new RegExp(`^${dependency}[.]`)
 
         projectionKeys
             .filter(key => regex.test(key))
@@ -162,5 +165,3 @@ function mergeProjectionAndResolveDependencies(projection: MongoDbProjection, re
 
     return newProjection;
 }
-
-export default getMongoDbProjection

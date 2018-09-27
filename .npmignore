@@ -4,3 +4,4 @@ index.ts
 .travis.yml
 CHANGELOG.md
 tsconfig.json
+tests/
