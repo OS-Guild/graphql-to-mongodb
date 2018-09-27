@@ -15,12 +15,6 @@ const operatorsMongoDbKeys = {
     OPTIONS: '$options',
 };
 
-function getMongoDbFilterOuter(graphQLType: GraphQLObjectType, graphQLFilter: object = {}): object {
-    return logOnError(() => {
-        return getMongoDbFilter(graphQLType, graphQLFilter);
-    });
-}
-
 function getMongoDbFilter(graphQLType: GraphQLObjectType, graphQLFilter: object = {}): object {
     if (!isType(graphQLType)) throw 'First arg of getMongoDbFilter must be the base graphqlType to be parsed'
 
@@ -120,4 +114,4 @@ function parseMongoDbScalarFilter(graphQLFilter: object): object {
     return mongoDbScalarFilter;
 }
 
-export default getMongoDbFilterOuter;
+export default logOnError(getMongoDbFilter);

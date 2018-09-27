@@ -6,7 +6,8 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "build": "tsc -p .",
-    "publish-now": "npm run build && npm publish"
+    "publish-now": "npm run build && npm publish",
+    "test": "ts-mocha tests/**/*.spec.ts"
   },
   "repository": {
     "type": "git",
@@ -19,7 +20,14 @@
   },
   "homepage": "https://github.com/Soluto/graphql-to-mongodb#readme",
   "devDependencies": {
-    "@types/graphql": "^0.12.4"
+    "@types/chai": "^4.1.4",
+    "@types/graphql": "^0.12.4",
+    "@types/mocha": "^5.2.5",
+    "chai": "^4.1.2",
+    "graphql": "^0.13.2",
+    "mocha": "^5.2.0",
+    "ts-mocha": "^2.0.0",
+    "typescript": "^3.0.3"
   },
   "peerDependencies": {
     "graphql": ">=0.10"

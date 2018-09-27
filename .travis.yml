@@ -8,3 +8,4 @@ before_script:
   - npm install -g typescript
 script:
   - npm run build
+  - npm run test

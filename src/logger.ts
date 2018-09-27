@@ -28,11 +28,14 @@ export function setLogger(loggerObject: Logger): void {
     logger = loggerObject || {};
 }
 
-export function logOnError<T>(action: () => T): T {
-    try {
-        return action();
-    } catch (exception) {
-        error('graphql-to-mongodb internal exception:', exception);
-        throw exception;
-    }
+export function logOnError<T>(func: T): T {
+    const wrappedFunction = (...args) => {
+        try {
+            return (func as any)(...args);
+        } catch (exception) {
+            error('graphql-to-mongodb internal exception:', exception);
+            throw exception;
+        }
+    };
+    return wrappedFunction as any;
 }

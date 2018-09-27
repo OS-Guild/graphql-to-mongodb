@@ -13,16 +13,14 @@ export interface updateObj {
 }
 
 function getMongoDbUpdate(update: updateArg): updateObj {
-    return logOnError(() => {
-        return clear({
-            update: {
-                $setOnInsert: update.setOnInsert,
-                $set: update.set ? flattenMongoDbSet(update.set) : undefined,
-                $inc: update.inc
-            },
-            options: update.setOnInsert ? { upsert: true } : undefined
-        }, FICTIVE_INC);
-    });
+    return clear({
+        update: {
+            $setOnInsert: update.setOnInsert,
+            $set: update.set ? flattenMongoDbSet(update.set) : undefined,
+            $inc: update.inc
+        },
+        options: update.setOnInsert ? { upsert: true } : undefined
+    }, FICTIVE_INC);
 }
 
 function flattenMongoDbSet(set: object, path: string[] = []): object {
@@ -42,4 +40,4 @@ function flattenMongoDbSet(set: object, path: string[] = []): object {
         }));
 }
 
-export default getMongoDbUpdate;
+export default logOnError(getMongoDbUpdate);
