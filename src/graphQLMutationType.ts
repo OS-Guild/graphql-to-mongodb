@@ -18,7 +18,7 @@ export function getGraphQLUpdateType(type: GraphQLObjectType, ...excludedFields:
 function getUpdateFields(graphQLType: GraphQLObjectType, ...excludedFields: string[]) : () => GraphQLInputFieldConfigMap {
     return () => ({
         set: { type: getGraphQLInputType(graphQLType, ...excludedFields) },
-        setOnInsert: { type: getGraphQLInsertTypeNested(graphQLType, ...excludedFields) },
+        setOnInsert: { type: getGraphQLInputType(graphQLType, ...excludedFields) },
         inc: { type: getGraphQLIncType(graphQLType, ...excludedFields) }
     });
 }

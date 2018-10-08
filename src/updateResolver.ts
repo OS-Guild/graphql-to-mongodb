@@ -2,6 +2,7 @@ import { getGraphQLFilterType } from './graphQLFilterType';
 import { getGraphQLUpdateType } from './graphQLMutationType';
 import getMongoDbFilter from './mongoDbFilter';
 import getMongoDbUpdate from './mongoDbUpdate';
+import { validateUpdateArgs } from './mongoDbUpdateValidation';
 import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
 import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 
@@ -19,20 +20,25 @@ export interface UpdateCallback<TSource, TContext> {
 };
 
 export interface UpdateOptions {
-    differentOutputType: boolean
+    differentOutputType: boolean;
+    validateUpdateArgs: boolean;
 };
 
 const defaultOptions: UpdateOptions = {
-    differentOutputType: false
+    differentOutputType: false,
+    validateUpdateArgs: false
 };
 
-export function getMongoDbUpdateResolver<TSource, TContext>(graphQLType: GraphQLObjectType, updateCallback: UpdateCallback<TSource, TContext>, updateOptions: UpdateOptions = defaultOptions)
-    : GraphQLFieldResolver<TSource, TContext> {
+export function getMongoDbUpdateResolver<TSource, TContext>(
+    graphQLType: GraphQLObjectType,
+    updateCallback: UpdateCallback<TSource, TContext>,
+    updateOptions: UpdateOptions = defaultOptions): GraphQLFieldResolver<TSource, TContext> {
     if (!isType(graphQLType)) throw 'getMongoDbUpdateResolver must recieve a graphql type';
     if (typeof updateCallback !== 'function') throw 'getMongoDbUpdateResolver must recieve an updateCallback';
 
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
+        if (updateOptions.validateUpdateArgs) validateUpdateArgs(args.update, graphQLType);
         const mongoUpdate = getMongoDbUpdate(args.update);
         const projection = updateOptions.differentOutputType ? undefined : getMongoDbProjection(info, graphQLType);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, source, args, context, info);

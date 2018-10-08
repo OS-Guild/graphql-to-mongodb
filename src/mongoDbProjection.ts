@@ -6,17 +6,17 @@ export interface MongoDbProjection {
     [key: string]: 1
 };
 
-export interface Field {
-    [key: string]: Field | 1
-}
+export interface ProjectionField {
+    [key: string]: ProjectionField | 1
+};
 
 interface FieldGraph {
     [key: string]: FieldGraph[] | 1
-}
+};
 
 interface FragmentDictionary {
     [key: string]: FieldGraph[]
-}
+};
 
 export const getMongoDbProjection = logOnError((info: GraphQLResolveInfo, graphQLType: GraphQLObjectType, ...excludedFields: string[]): MongoDbProjection => {
     if (!Object.keys(info).includes('fieldNodes')) throw 'First argument of "getMongoDbProjection" must be a GraphQLResolveInfo';
@@ -31,7 +31,7 @@ export const getMongoDbProjection = logOnError((info: GraphQLResolveInfo, graphQ
     return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
 });
 
-export function getRequestedFields(info: GraphQLResolveInfo): Field {
+export function getRequestedFields(info: GraphQLResolveInfo): ProjectionField {
     const selections = flatten(info.fieldNodes.map(_ => _.selectionSet.selections));
     const simplifiedNodes = simplifyNodes({ selections: selections }, info);
     return mergeNodes(simplifiedNodes);
@@ -72,7 +72,7 @@ function buildFragment(fragmentName: string, info: GraphQLResolveInfo, dictionar
     });
 }
 
-function mergeNodes(fieldGraphs: FieldGraph[]): Field {
+function mergeNodes(fieldGraphs: FieldGraph[]): ProjectionField {
     const mergedGraph: FieldGraph = {};
 
     fieldGraphs.forEach(fieldGraph => Object.keys(fieldGraph).forEach(fieldName => {
@@ -93,7 +93,7 @@ function mergeNodes(fieldGraphs: FieldGraph[]): Field {
     }, {});
 }
 
-export function getProjection(fieldNode: Field, graphQLType: GraphQLObjectType, path: string[] = [], ...excludedFields: string[]): MongoDbProjection {
+export function getProjection(fieldNode: ProjectionField, graphQLType: GraphQLObjectType, path: string[] = [], ...excludedFields: string[]): MongoDbProjection {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.assign({}, ...Object.keys(fieldNode)
@@ -112,7 +112,7 @@ export function getProjection(fieldNode: Field, graphQLType: GraphQLObjectType, 
         }));
 }
 
-export function getResolveFieldsDependencies(fieldNode: Field, graphQLType: GraphQLObjectType): string[] {
+export function getResolveFieldsDependencies(fieldNode: ProjectionField, graphQLType: GraphQLObjectType): string[] {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.keys(fieldNode)
