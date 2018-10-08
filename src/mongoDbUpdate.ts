@@ -1,18 +1,24 @@
 import { FICTIVE_INC, clear } from './common';
 import { logOnError } from './logger';
 
-export interface updateArg {
+export interface UpdateArgs {
     setOnInsert?: any,
     set?: any,
     inc?: any,
 }
 
-export interface updateObj {
-    update?: any,
+export interface UpdateObj {
+    $setOnInsert?: any
+    $set?: any
+    $inc?: any
+}
+
+export interface updateParams {
+    update?: UpdateObj,
     options?: any
 }
 
-function getMongoDbUpdate(update: updateArg): updateObj {
+function getMongoDbUpdate(update: UpdateArgs): updateParams {
     return clear({
         update: {
             $setOnInsert: update.setOnInsert,

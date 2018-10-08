@@ -1,4 +1,4 @@
-import { GraphQLObjectType, GraphQLInt, GraphQLString, GraphQLList, GraphQLEnumType, GraphQLFloat } from "graphql";
+import { GraphQLObjectType, GraphQLInt, GraphQLString, GraphQLList, GraphQLEnumType, GraphQLFloat, GraphQLNonNull } from "graphql";
 
 export const CharactersEnum = new GraphQLEnumType({
     name: "Characters",
@@ -21,6 +21,10 @@ export const NestedType = new GraphQLObjectType({
         intList: { type: new GraphQLList(GraphQLInt) },
         floatList: { type: new GraphQLList(GraphQLFloat) },
         enumList: { type: new GraphQLList(CharactersEnum) },
+        
+        nonNullScalar: { type: new GraphQLNonNull(GraphQLString) },
+        nonNullList: { type: new GraphQLNonNull(new GraphQLList(GraphQLString)) },
+        listOfNonNulls: { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) },
 
         resolveScalar: {
             type: GraphQLString,
@@ -50,6 +54,10 @@ export const ObjectType = new GraphQLObjectType({
 
         nested: { type: NestedType },
         nestedList: { type: new GraphQLList(NestedType) },
+
+        nonNullScalar: { type: new GraphQLNonNull(GraphQLString) },
+        nonNullList: { type: new GraphQLNonNull(new GraphQLList(GraphQLString)) },
+        listOfNonNulls: { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) },
 
         resolveSpecificDependencies: {
             type: GraphQLString,

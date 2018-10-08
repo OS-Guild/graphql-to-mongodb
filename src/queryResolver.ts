@@ -33,8 +33,10 @@ const defaultOptions: QueryOptions = {
     differentOutputType: false
 };
 
-export function getMongoDbQueryResolver<TSource, TContext>(graphQLType: GraphQLObjectType, queryCallback: QueryCallback<TSource, TContext>, queryOptions: QueryOptions = defaultOptions)
-    : GraphQLFieldResolver<TSource, TContext> {
+export function getMongoDbQueryResolver<TSource, TContext>(
+    graphQLType: GraphQLObjectType,
+    queryCallback: QueryCallback<TSource, TContext>,
+    queryOptions: QueryOptions = defaultOptions): GraphQLFieldResolver<TSource, TContext> {
     if (!isType(graphQLType)) throw 'getMongoDbQueryResolver must recieve a graphql type'
     if (typeof queryCallback !== 'function') throw 'getMongoDbQueryResolver must recieve a queryCallback function'
 

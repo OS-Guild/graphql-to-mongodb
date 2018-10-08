@@ -1,4 +1,9 @@
 # Change Log
+### 1.5.0
+- Add server-side validation for update args instead of preserving non-nullability from the origin type. 
+If a field is non-nullable it must be set in either the update operators (e.g. `setOnInsert`, `set`, `inc`, etc...)
+- Tests! (Limited coverage)
+---
 ##### 1.4.4
 - Bug fix
 ---
@@ -30,7 +35,7 @@
 - Fix type declarations in package
 ---
 ### 1.3.0
-- Renameed package and repository
+- Renamed package and repository
 - TypeScript!
 - Log warn and error callbacks
 ---

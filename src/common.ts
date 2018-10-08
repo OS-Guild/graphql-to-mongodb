@@ -111,6 +111,18 @@ export function isListType(graphQLType: GraphQLType): boolean {
     return false;
 }
 
+export function isNonNullType(graphQLType: GraphQLType): boolean {
+    let innerType = graphQLType;
+
+    while (innerType instanceof GraphQLList
+        || innerType instanceof GraphQLNonNull) {
+        if (innerType instanceof GraphQLNonNull) return true;
+        innerType = innerType.ofType;
+    }
+
+    return false;
+}
+
 export function isScalarType(graphQLType: GraphQLType): boolean {
     return graphQLType instanceof GraphQLScalarType || graphQLType instanceof GraphQLEnumType;
 }

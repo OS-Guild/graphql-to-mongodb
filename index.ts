@@ -1,30 +1,12 @@
-import { getGraphQLFilterType } from './src/graphQLFilterType';
-import getMongoDbFilter from './src/mongoDbFilter';
-import { getGraphQLUpdateType, getGraphQLInsertType } from './src/graphQLMutationType';
-import getMongoDbUpdate from './src/mongoDbUpdate';
-import GraphQLPaginationType from './src/graphQLPaginationType';
-import getGraphQLSortType from './src/graphQLSortType';
-import getMongoDbSort from './src/mongoDbSort';
-import { getMongoDbProjection } from './src/mongoDbProjection';
-import { getMongoDbQueryResolver, getGraphQLQueryArgs, QueryOptions } from './src/queryResolver';
-import { getMongoDbUpdateResolver, getGraphQLUpdateArgs, UpdateOptions } from './src/updateResolver';
-import { setLogger } from './src/logger';
-
-export {
-    getGraphQLFilterType,
-    getMongoDbFilter,
-    getGraphQLUpdateType,
-    getGraphQLInsertType,
-    getMongoDbUpdate,
-    GraphQLPaginationType,
-    getGraphQLSortType,
-    getMongoDbSort,
-    getMongoDbProjection,
-    QueryOptions,
-    getMongoDbQueryResolver,
-    getGraphQLQueryArgs,
-    UpdateOptions,
-    getMongoDbUpdateResolver,
-    getGraphQLUpdateArgs,
-    setLogger
-};
+export { getGraphQLFilterType } from './src/graphQLFilterType';
+export { default as getMongoDbFilter } from './src/mongoDbFilter';
+export { getGraphQLUpdateType, getGraphQLInsertType } from './src/graphQLMutationType';
+export { default as getMongoDbUpdate } from './src/mongoDbUpdate';
+export { validateUpdateArgs } from "./src/mongoDbUpdateValidation";
+export { default as GraphQLPaginationType } from './src/graphQLPaginationType';
+export { default as getGraphQLSortType } from './src/graphQLSortType';
+export { default as getMongoDbSort } from './src/mongoDbSort';
+export { getMongoDbProjection } from './src/mongoDbProjection';
+export { getMongoDbQueryResolver, getGraphQLQueryArgs, QueryOptions } from './src/queryResolver';
+export { getMongoDbUpdateResolver, getGraphQLUpdateArgs, UpdateOptions } from './src/updateResolver';
+export { setLogger } from './src/logger';

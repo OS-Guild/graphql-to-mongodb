@@ -1,4 +1,4 @@
-import { getMongoDbProjection, getRequestedFields, getProjection, getResolveFieldsDependencies, mergeProjectionAndResolveDependencies, Field, MongoDbProjection } from "../../src/mongoDbProjection";
+import { getMongoDbProjection, getRequestedFields, getProjection, getResolveFieldsDependencies, mergeProjectionAndResolveDependencies, ProjectionField, MongoDbProjection } from "../../src/mongoDbProjection";
 import { ObjectType } from "../utils/types";
 import fieldResolve from "../utils/fieldResolve";
 import { expect } from "chai";
@@ -169,7 +169,7 @@ describe("mongoDbProjection", () => {
         }));
     });
     describe("getRequestedFields", () => {
-        const tests: { description: string, query: string, expecteFields: Field }[] = [
+        const tests: { description: string, query: string, expecteFields: ProjectionField }[] = [
             {
                 description: "Should get fields of a simple request",
                 query: queries.simple,
@@ -249,7 +249,7 @@ describe("mongoDbProjection", () => {
         }));
     });
     describe("getProjection", () => {
-        const tests: { description: string, fieldNode: Field, expectedProjection: MongoDbProjection }[] = [
+        const tests: { description: string, fieldNode: ProjectionField, expectedProjection: MongoDbProjection }[] = [
             {
                 description: "Should get projection of a simple request",
                 fieldNode: {
@@ -331,7 +331,7 @@ describe("mongoDbProjection", () => {
         }));
     });
     describe("getResolveFieldsDependencies", () => {
-        const tests: { description: string, fieldNode: Field, expectedDependencies: string[] }[] = [{
+        const tests: { description: string, fieldNode: ProjectionField, expectedDependencies: string[] }[] = [{
             description: "Should get resolve fields dependencies of scalars",
             fieldNode: {
                 resolveSpecificDependencies: 1
@@ -411,6 +411,7 @@ describe("mongoDbProjection", () => {
             projection: {
                 "stringScalar": 1,
                 "nested.floatScalar": 1,
+                "nested.stringScalar": 1,
                 "nestedList.intScalar": 1,
                 "someNested": 1
             },

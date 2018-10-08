@@ -6,7 +6,8 @@
         "lib": [
             "es7",
             "dom",
-            "esnext.asynciterable"
+            "esnext.asynciterable",
+            "es2017.object"
         ],
         "allowSyntheticDefaultImports": true,
         "declaration": true,
