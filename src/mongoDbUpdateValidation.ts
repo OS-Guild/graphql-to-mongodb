@@ -9,7 +9,8 @@ export interface UpdateField {
 export function validateUpdateArgs(updateArgs: UpdateArgs, graphQLType: GraphQLObjectType): void {
     let errors: string[] = [];
 
-    errors = [...errors, ...validateNonNullableFields(Object.values(updateArgs), graphQLType, !!updateArgs.setOnInsert)];
+    errors = errors.concat(validateNonNullableFields(
+        Object.keys(updateArgs).map(_ => updateArgs[_]), graphQLType, !!updateArgs.setOnInsert));
 
     if (errors.length > 0) {
         throw errors.join("\n");
