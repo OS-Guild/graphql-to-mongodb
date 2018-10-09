@@ -1,4 +1,7 @@
 # Change Log
+##### 1.5.1
+- Bug fix, non-null validation should only apply on upserts or list items
+---
 ### 1.5.0
 - Add server-side validation for update args instead of preserving non-nullability from the origin type. 
 If a field is non-nullable it must be set in either the update operators (e.g. `setOnInsert`, `set`, `inc`, etc...)

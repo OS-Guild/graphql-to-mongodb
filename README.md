@@ -28,7 +28,29 @@ new GraphQLObjectType({
     })
 })
 ```
-**We'll define the peron query in our GraphQL scheme like so:**
+#### An example GraphQL query supported by the package:
+
+Queries the first 50 persons, oldest first,  over the age of 18, and whose first name is John
+
+```
+{
+    person (
+        filter: {
+            age: { GT: 18 },
+            name: { 
+                firstName: { EQ: "John" } 
+            }
+        },
+        sort: { age: DESC },
+        pagination: { limit: 50 }
+    ) {
+        fullName
+        age
+    }
+}
+```
+
+**To implement, we'll define the peron query field in our GraphQL scheme like so:**
 
 
 ```js
@@ -37,7 +59,7 @@ person: {
     args: getGraphQLQueryArgs(PersonType),
     resolve: getMongoDbQueryResolver(PersonType,
         async (filter, projection, options, obj, args, context) => {
-            return await context.db.collection('persons').find(filter, projection, options).toArray();
+            return await context.db.collection('people').find(filter, projection, options).toArray();
         })
 }
 ```
@@ -55,7 +77,7 @@ You'll notice that integrating the package takes little more than adding some fa
 *  As of `mongodb` package version 3.0, you should implement the resolve callback as:
    ```js
    options.projection = projection;
-   return await context.db.collection('persons').find(filter, options).toArray();
+   return await context.db.collection('people').find(filter, options).toArray();
    ```
 
 ### That's it!
@@ -109,41 +131,5 @@ age: SortType
 limit: Int
 skip: Int
 ```
-#### Example GraphQL Query:
 
-Queries the first 50 persons, oldest first,  over the age of 18, and whose first name is John
-
-```
-{
-    person (
-        filter: {
-            age: { GT: 18 },
-            name: { 
-                firstName: { EQ: "John" } 
-            }
-        },
-        sort: { age: DESC },
-        pagination: { limit: 50 }
-    ) {
-        fullName
-        age
-    }
-}
-```
-
-### Aside from the mentioned above, the package comes with functionality galore!
-
-*  ```getGraphQLFilterType``` 
-*  ```getGraphQLSortType```
-*  ```getGraphQLUpdateType```
-*  ```getGraphQLInsertType``` 
-*  ```getGraphQLQueryArgs```
-*  ```getGraphQLUpdateArgs```
-*  ```GraphQLPaginationType```
-*  ```getMongoDbFilter```
-*  ```getMongoDbProjection```
-*  ```getMongoDbUpdate```
-*  ```getMongoDbSort```
-*  ```getMongoDbQueryResolver```
-*  ```getMongoDbUpdateResolver```
-*  ```setLogger```
+### Functionality galore! Update, insert, and extensiable custom fields.

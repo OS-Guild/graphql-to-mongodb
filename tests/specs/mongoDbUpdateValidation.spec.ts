@@ -1,10 +1,82 @@
 import { ObjectType } from "../utils/types";
-import { validateNonNullableFields, validateNonNullableFieldsAssert, validateNonNullListField, validateNonNullableFieldsTraverse, flattenListField } from "../../src/mongoDbUpdateValidation";
+import { validateUpdateArgs, validateNonNullableFields, validateNonNullableFieldsAssert, validateNonNullListField, validateNonNullableFieldsTraverse, flattenListField } from "../../src/mongoDbUpdateValidation";
 import { expect } from "chai";
-import { GraphQLObjectType, GraphQLType, GraphQLList, GraphQLNonNull, GraphQLString, execute } from "graphql";
+import { GraphQLObjectType, GraphQLType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 import { UpdateArgs } from "../../src/mongoDbUpdate";
 
-describe("mongoDbProjection", () => {
+describe("mongoDbUpdateValidation", () => {
+    describe("validateUpdateArgs", () => {
+        const tests: { description: string, type: GraphQLObjectType, updateArgs: UpdateArgs, expectedErrors: string[] }[] = [{
+            description: "Should invalidate non-null on upsert",
+            type: ObjectType,
+            updateArgs: {
+                setOnInsert: {
+                    stringScalar: "x",
+                },
+                set: {
+                    nonNullScalar: null
+                }
+            },
+            expectedErrors: ["Missing non-nullable field \"nonNullList\"", "Non-nullable field \"nonNullScalar\" is set to null"]
+        }, {
+            description: "Should ignore non-null on update",
+            type: ObjectType,
+            updateArgs: {
+                set: {
+                    nonNullScalar: null
+                }
+            },
+            expectedErrors: []
+        }, {
+            description: "Should invalidate non-null on update list item",
+            type: ObjectType,
+            updateArgs: {
+                set: {
+                    nonNullScalar: null,
+                    nestedList: [{
+                    }]
+                }
+            },
+            expectedErrors: ["Missing non-nullable field \"nestedList.nonNullList\"", "Missing non-nullable field \"nestedList.nonNullScalar\""]
+        }, {
+            description: "Should validate update correct non-null",
+            type: ObjectType,
+            updateArgs: {
+                setOnInsert: {
+                    stringScalar: "x",
+                },
+                set: {
+                    nonNullScalar: "x",
+                    nonNullList: []
+                }
+            },
+            expectedErrors: []
+        }];
+
+        tests.forEach(test => it(test.description, () => {
+            // Arrange
+            let error;
+
+            // Act
+            try {
+                validateUpdateArgs(test.updateArgs, test.type);
+            } catch (err) {
+                error = err;
+            }
+
+            // Assert
+            if (test.expectedErrors.length > 0) {
+                expect(error, "error object expected").to.not.be.undefined;
+
+                const errorString: string = typeof error == "string" ? error : (error as Error).message;
+                const errors = errorString.split("\n");
+                expect(errors).to.have.members(test.expectedErrors, "Should detect correct errors");
+            } else {
+                if (error) throw error
+            }
+        }));
+    });
+
     describe("validateNonNullableFields", () => {
         const tests: { description: string, type: GraphQLObjectType, updateArgs: UpdateArgs, expectedErrors: string[] }[] = [{
             description: "Should invalidate root fields",
@@ -91,7 +163,7 @@ describe("mongoDbProjection", () => {
             const objects = Object.keys(test.updateArgs).map(_ => test.updateArgs[_]);
 
             // Act
-            const errors = validateNonNullableFields(objects, test.type);
+            const errors = validateNonNullableFields(objects, test.type, true);
 
             // Assert
             expect(errors).to.have.members(test.expectedErrors, "Should detect correct errors");
@@ -217,7 +289,7 @@ describe("mongoDbProjection", () => {
 
         tests.forEach(test => it(test.description, () => {
             // act
-            const errors = validateNonNullableFieldsTraverse(test.objects, test.type.getFields(), test.path);
+            const errors = validateNonNullableFieldsTraverse(test.objects, test.type.getFields(), true, test.path);
 
             // Assert
             expect(errors).to.have.members(test.expectedErrors, "Should detect correct errors");

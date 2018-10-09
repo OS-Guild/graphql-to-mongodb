@@ -9,19 +9,19 @@ export interface UpdateField {
 export function validateUpdateArgs(updateArgs: UpdateArgs, graphQLType: GraphQLObjectType): void {
     let errors: string[] = [];
 
-    errors = [...errors, ...validateNonNullableFields(Object.values(updateArgs), graphQLType)];
+    errors = [...errors, ...validateNonNullableFields(Object.values(updateArgs), graphQLType, !!updateArgs.setOnInsert)];
 
     if (errors.length > 0) {
         throw errors.join("\n");
     }
 }
 
-export function validateNonNullableFields(objects: object[], graphQLType: GraphQLObjectType, path: string[] = []): string[] {
+export function validateNonNullableFields(objects: object[], graphQLType: GraphQLObjectType, shouldAssert: boolean, path: string[] = []): string[] {
     const typeFields = graphQLType.getFields();
 
-    const errors = validateNonNullableFieldsAssert(objects, typeFields, path);
+    const errors: string[] = shouldAssert ? validateNonNullableFieldsAssert(objects, typeFields, path) : [];
     
-    return [...errors, ...validateNonNullableFieldsTraverse(objects, typeFields, path)];
+    return [...errors, ...validateNonNullableFieldsTraverse(objects, typeFields, shouldAssert, path)];
 }
 
 export function validateNonNullableFieldsAssert(objects: object[], typeFields: GraphQLFieldMap<any, any>, path: string[] = []): string[] {
@@ -62,7 +62,7 @@ export function validateNonNullListField(fieldValues: object[], type: GraphQLTyp
     return true;
 }
 
-export function validateNonNullableFieldsTraverse(objects: object[], typeFields: GraphQLFieldMap<any, any>, path: string[] = []): string[] {
+export function validateNonNullableFieldsTraverse(objects: object[], typeFields: GraphQLFieldMap<any, any>, shouldAssert: boolean, path: string[] = []): string[] {
     let keys: string[] = Array.from(new Set(flatten(objects.map(_ => Object.keys(_)))));
 
     return keys.reduce((agg, key) => {
@@ -78,9 +78,9 @@ export function validateNonNullableFieldsTraverse(objects: object[], typeFields:
         const values = objects.map(_ => _[key]).filter(_ => _);
 
         if (isListType(type)) {
-            return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, newPath)))];
+            return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, true, newPath)))];
         } else {
-            return [...agg, ...validateNonNullableFields(values, innerType, newPath)];
+            return [...agg, ...validateNonNullableFields(values, innerType, shouldAssert, newPath)];
         }
     }, []);
 }
