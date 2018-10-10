@@ -1,6 +1,6 @@
 export { getGraphQLFilterType } from './src/graphQLFilterType';
 export { default as getMongoDbFilter } from './src/mongoDbFilter';
-export { getGraphQLUpdateType, getGraphQLInsertType } from './src/graphQLMutationType';
+export { getGraphQLUpdateType, getGraphQLInsertType } from './src/graphQLUpdateType';
 export { default as getMongoDbUpdate } from './src/mongoDbUpdate';
 export { validateUpdateArgs } from "./src/mongoDbUpdateValidation";
 export { default as GraphQLPaginationType } from './src/graphQLPaginationType';

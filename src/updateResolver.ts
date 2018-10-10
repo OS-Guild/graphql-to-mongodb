@@ -1,5 +1,5 @@
 import { getGraphQLFilterType } from './graphQLFilterType';
-import { getGraphQLUpdateType } from './graphQLMutationType';
+import { getGraphQLUpdateType } from './graphQLUpdateType';
 import getMongoDbFilter from './mongoDbFilter';
 import getMongoDbUpdate from './mongoDbUpdate';
 import { validateUpdateArgs } from './mongoDbUpdateValidation';
