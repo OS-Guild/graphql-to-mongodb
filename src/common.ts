@@ -1,10 +1,15 @@
-import { isType, GraphQLList, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLInputFieldConfigMap, Thunk, GraphQLFieldMap, GraphQLField, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode } from 'graphql'
+import { isType, GraphQLList, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode } from 'graphql'
 
-export const FICTIVE_INC = "FICTIVE_INC";
-export const FICTIVE_SORT = "FICTIVE_SORT";
+export const FICTIVE_SORT = "_FICTIVE_SORT";
 
 export interface cacheCallback<T> {
     (key): T
+}
+
+export const typesCache: { [key: string]: GraphQLType } = {};
+
+export function clearTypesCache() {
+    Object.keys(typesCache).forEach(_ => delete typesCache[_]);
 }
 
 export function cache<T>(cacheObj: object, key: any, callback: cacheCallback<T>): T {
@@ -127,42 +132,23 @@ export function isScalarType(graphQLType: GraphQLType): boolean {
     return graphQLType instanceof GraphQLScalarType || graphQLType instanceof GraphQLEnumType;
 }
 
-export function clear(obj: object, ...excludedKeys: string[]): object {
-    if (Array.isArray(obj)) {
-        return obj.map(value => {
-            if (typeof value != 'object' ||
-                value instanceof Date ||
-                isType(value)) {
-                return value;
-            }
-
-            return clear(value, ...excludedKeys);
-        });
-    }
-
-    return Object.keys(obj).reduce((cleared, key) => {
-        let value = obj[key];
-        if (value !== undefined &&
-            value !== null &&
-            !excludedKeys.includes(key)) {
-
-            if (typeof value != 'object' ||
-                value instanceof Date ||
-                isType(value)) {
-                return { ...cleared, [key]: value }
-            }
-
-            const objectValue = clear(value, ...excludedKeys);
-
-            if (Object.keys(objectValue).length > 0) {
-                return { ...cleared, [key]: objectValue }
-            }
-        }
-
-        return cleared;
-    }, {});
+export function flatten<T>(nestedArray: T[][]): T[] {
+    return nestedArray.reduce((agg, b) => agg.concat(b), []);
 }
 
-export function flatten<T>(nestedArray: T[][]) : T[] {
-    return nestedArray.reduce((agg, b) => agg.concat(b), []);
+export function addPrefixToProperties<T extends {}>(obj: T, prefix: string): T {
+    return Object.keys(obj).reduce((agg, key) => ({ ...agg, [`${prefix}${key}`]: obj[key] }), {}) as T;
+}
+
+export function isPrimitive(value: any): boolean {
+    const type = typeof value;
+    return (type === "boolean"
+        || type === "number"
+        || type === "string"
+        || type === "undefined"
+        || (type === "object" && (value === null || isValidDate(value))));
+}
+
+function isValidDate(date): boolean {
+    return date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
 }

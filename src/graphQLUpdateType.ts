@@ -1,31 +1,31 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLInt, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType } from 'graphql';
-import { FICTIVE_INC, cache, setSuffix, getUnresolvedFieldsTypes, clear, TypeResolver, FieldMap } from './common';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLInt, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, Thunk, GraphQLBoolean } from 'graphql';
+import { cache, setSuffix, getUnresolvedFieldsTypes, typesCache } from './common';
 
-const updateTypesCache = {};
-const inputTypesCache = {};
-const insertTypesCache = {};
-const incTypesCache = {};
+export const OVERWRITE = "_OVERWRITE";
+export const OVERWRITE_DESCRIPTION = "If set to true, the object would be overwriten entirely, including fields that are not specified. Non-null validation rules will apply. Once set to true, any child object will overwriten invariably of the value set to this field.";
+export const FICTIVE_INC = "_FICTIVE_INC";
+export const FICTIVE_INC_DESCRIPTION = "IGNORE. Due to limitations of the package, objects with no incrementable fields cannot be ommited. All input object types must have at least one field";
 
-export function getGraphQLUpdateType(type: GraphQLObjectType, ...excludedFields: string[]) : GraphQLInputObjectType {
+export function getGraphQLUpdateType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputObjectType {
     const updateTypeName = setSuffix(type.name, 'Type', 'UpdateType');
 
-    return cache(updateTypesCache, updateTypeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, updateTypeName, () => new GraphQLInputObjectType({
         name: updateTypeName,
         fields: getUpdateFields(type, ...excludedFields)
     }));
 }
 
-function getUpdateFields(graphQLType: GraphQLObjectType, ...excludedFields: string[]) : () => GraphQLInputFieldConfigMap {
+function getUpdateFields(graphQLType: GraphQLObjectType, ...excludedFields: string[]): () => GraphQLInputFieldConfigMap {
     return () => ({
-        set: { type: getGraphQLInputType(graphQLType, ...excludedFields) },
-        setOnInsert: { type: getGraphQLInputType(graphQLType, ...excludedFields) },
+        setOnInsert: { type: getGraphQLSetOnInsertType(graphQLType, ...excludedFields) },
+        set: { type: getGraphQLSetType(graphQLType, ...excludedFields) },
         inc: { type: getGraphQLIncType(graphQLType, ...excludedFields) }
     });
 }
 
-function getGraphQLInputType(
-    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>, 
-    ...excludedFields: string[]) : GraphQLInputType {
+export function getGraphQLSetOnInsertType(
+    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>,
+    ...excludedFields: string[]): GraphQLInputType {
 
     if (type instanceof GraphQLScalarType ||
         type instanceof GraphQLEnumType) {
@@ -33,72 +33,72 @@ function getGraphQLInputType(
     }
 
     if (type instanceof GraphQLNonNull) {
-        return getGraphQLInputType(type.ofType);
+        return getGraphQLSetOnInsertType(type.ofType);
     }
 
     if (type instanceof GraphQLList) {
-        return new GraphQLList(getGraphQLInputType(type.ofType));
+        return new GraphQLList(getGraphQLSetOnInsertType(type.ofType));
     }
 
-    const inputTypeName = setSuffix(type.name, 'Type', 'InputType');
+    const inputTypeName = setSuffix(type.name, 'Type', 'SetOnInsertType');
 
-    return cache(inputTypesCache, inputTypeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
-        fields: getUnresolvedFieldsTypes(type, getGraphQLInputType, ...excludedFields)
+        fields: getUnresolvedFieldsTypes(type, getGraphQLSetOnInsertType, ...excludedFields)
     }));
 }
 
-export function getGraphQLInsertType(graphQLType: GraphQLObjectType, ...excludedFields: string[]) : GraphQLInputObjectType {
-    const inputTypeName = setSuffix(graphQLType.name, 'Type', 'InsertType');
+export function getGraphQLSetType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputObjectType {
+    const inputTypeName = setSuffix(type.name, 'Type', 'SetType');
 
-    return cache(insertTypesCache, inputTypeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
-        fields: getGraphQLInsertTypeFields(graphQLType, ...excludedFields)
+        fields: getUnresolvedFieldsTypes(type, (_, ...excluded) => getGraphQLSetObjectType(_ as any, false, ...excluded), ...excludedFields)
     }));
 }
 
-function getGraphQLInsertTypeFields(graphQLType: GraphQLObjectType, ...excludedFields: string[]) : () => FieldMap<GraphQLInputType> {
+function getGraphQLSetObjectType(
+    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>,
+    isInList: boolean, 
+    ...excludedFields: string[]): GraphQLInputType {
+
+
+    if (type instanceof GraphQLScalarType ||
+        type instanceof GraphQLEnumType) {
+        return type;
+    }
+
+    if (type instanceof GraphQLNonNull) {
+        return getGraphQLSetObjectType(type.ofType, isInList);
+    }
+
+    if (type instanceof GraphQLList) {
+        return new GraphQLList(getGraphQLSetObjectType(type.ofType, true));
+    }
+
+    const inputTypeName = setSuffix(type.name, 'Type', isInList ? 'SetListObjectType' : 'SetObjectType');
+
+    return cache(typesCache, inputTypeName, () => new GraphQLInputObjectType({
+        name: inputTypeName,
+        fields: getGraphQLSetObjectTypeFields(type, isInList, ...excludedFields)
+    }));
+}
+
+function getGraphQLSetObjectTypeFields(type: GraphQLObjectType, isInList: boolean, ...excludedFields: string[]): Thunk<GraphQLInputFieldConfigMap> {
     return () => {
-        const fields = getUnresolvedFieldsTypes(graphQLType, getGraphQLInsertTypeNested, ...excludedFields)();
+        const fields = getUnresolvedFieldsTypes(type, (_, ...excluded) => getGraphQLSetObjectType(_ as any, isInList, ...excluded), ...excludedFields)();
 
-        const idField = fields['_id'];
-
-        if (idField && idField.type instanceof GraphQLNonNull) {
-            idField.type = idField.type.ofType;
+        if (!isInList) {
+            fields[OVERWRITE] = { type: GraphQLBoolean, description: OVERWRITE_DESCRIPTION }
         }
 
         return fields;
     };
 }
 
-function getGraphQLInsertTypeNested(
-    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>, 
-    ...excludedFields: string[]) : GraphQLInputType {
-
-    if (type instanceof GraphQLScalarType ||
-        type instanceof GraphQLEnumType) {
-        return type;
-    }
-
-    if (type instanceof GraphQLNonNull) {
-        return new GraphQLNonNull(getGraphQLInsertTypeNested(type.ofType));
-    }
-
-    if (type instanceof GraphQLList) {
-        return new GraphQLList(getGraphQLInsertTypeNested(type.ofType));
-    }
-
-    const inputTypeName = setSuffix(type.name, 'Type', 'InsertType');
-
-    return cache(insertTypesCache, inputTypeName, () => new GraphQLInputObjectType({
-        name: inputTypeName,
-        fields: getUnresolvedFieldsTypes(type, getGraphQLInsertTypeNested, ...excludedFields)
-    }));
-}
-
-function getGraphQLIncType(
-    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>,  
-    ...excludedFields: string[]) : GraphQLInputType {
+export function getGraphQLIncType(
+    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>,
+    ...excludedFields: string[]): GraphQLInputType {
 
     if (type instanceof GraphQLScalarType ||
         type instanceof GraphQLEnumType) {
@@ -119,13 +119,13 @@ function getGraphQLIncType(
 
     const inputTypeName = setSuffix(type.name, 'Type', 'IncType');
 
-    return cache(incTypesCache, inputTypeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, inputTypeName, () => new GraphQLInputObjectType({
         name: inputTypeName,
         fields: getGraphQLIncTypeFields(type, ...excludedFields)
     }));
 }
 
-function getGraphQLIncTypeFields(type: GraphQLObjectType, ...excludedFields: string[]) : () => GraphQLInputFieldConfigMap {
+function getGraphQLIncTypeFields(type: GraphQLObjectType, ...excludedFields: string[]): () => GraphQLInputFieldConfigMap {
     return () => {
         const fields = getUnresolvedFieldsTypes(type, getGraphQLIncType, ...excludedFields)();
 
@@ -133,6 +133,6 @@ function getGraphQLIncTypeFields(type: GraphQLObjectType, ...excludedFields: str
             return fields;
         }
 
-        return { [FICTIVE_INC]: { type: GraphQLInt, description: "IGNORE. Due to limitations of the package, objects with no incrementable fields cannot be ommited. All input object types must have at least one field" } }
+        return { [FICTIVE_INC]: { type: GraphQLInt, description: FICTIVE_INC_DESCRIPTION } }
     }
 }

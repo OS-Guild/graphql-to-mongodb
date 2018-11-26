@@ -1,27 +1,46 @@
 import { UpdateArgs } from "./mongoDbUpdate";
-import { GraphQLObjectType, GraphQLType, GraphQLNonNull, GraphQLList, GraphQLFieldMap } from "graphql";
+import { GraphQLObjectType, GraphQLType, GraphQLNonNull, GraphQLList, GraphQLFieldMap, GraphQLError } from "graphql";
 import { isNonNullType, getInnerType, flatten, isListType } from "./common";
+import { OVERWRITE } from "./graphQLUpdateType";
 
 export interface UpdateField {
     [key: string]: UpdateField | UpdateField[] | 1
 }
 
-export function validateUpdateArgs(updateArgs: UpdateArgs, graphQLType: GraphQLObjectType): void {
+export enum ShouldAssert {
+    DefaultTrueRoot,
+    True,
+    False
+}
+
+export function validateUpdateArgs(updateArgs: UpdateArgs, graphQLType: GraphQLObjectType, overwrite: boolean): void {
     let errors: string[] = [];
 
-    errors = errors.concat(validateNonNullableFields(
-        Object.keys(updateArgs).map(_ => updateArgs[_]), graphQLType, !!updateArgs.setOnInsert));
+    errors = errors.concat(validateNonNullableFieldsOuter(updateArgs, overwrite, graphQLType));
 
     if (errors.length > 0) {
-        throw errors.join("\n");
+        throw new GraphQLError(errors.join("\n"));
     }
 }
 
-export function validateNonNullableFields(objects: object[], graphQLType: GraphQLObjectType, shouldAssert: boolean, path: string[] = []): string[] {
+function validateNonNullableFieldsOuter(updateArgs: UpdateArgs, overwrite: boolean, graphQLType: GraphQLObjectType): string[] {
+    const shouldAssert: ShouldAssert = !!updateArgs.setOnInsert
+        ? ShouldAssert.True
+        : overwrite
+            ? ShouldAssert.DefaultTrueRoot
+            : ShouldAssert.False;
+
+    return validateNonNullableFields(Object.keys(updateArgs).map(_ => updateArgs[_]), graphQLType, shouldAssert);
+}
+
+export function validateNonNullableFields(objects: object[], graphQLType: GraphQLObjectType, shouldAssert: ShouldAssert, path: string[] = []): string[] {
     const typeFields = graphQLType.getFields();
 
-    const errors: string[] = shouldAssert ? validateNonNullableFieldsAssert(objects, typeFields, path) : [];
-    
+    const errors: string[] = shouldAssert === ShouldAssert.True ? validateNonNullableFieldsAssert(objects, typeFields, path) : [];
+
+    const overwrite = objects.map(_ => _[OVERWRITE]).filter(_ => _)[0];
+    shouldAssert = getShouldAssert(shouldAssert, overwrite);
+
     return [...errors, ...validateNonNullableFieldsTraverse(objects, typeFields, shouldAssert, path)];
 }
 
@@ -63,7 +82,23 @@ export function validateNonNullListField(fieldValues: object[], type: GraphQLTyp
     return true;
 }
 
-export function validateNonNullableFieldsTraverse(objects: object[], typeFields: GraphQLFieldMap<any, any>, shouldAssert: boolean, path: string[] = []): string[] {
+export function getShouldAssert(current: ShouldAssert, input?: boolean): ShouldAssert {
+    if (current === ShouldAssert.True) {
+        return ShouldAssert.True;
+    }
+
+    if (typeof input !== "undefined") {
+        return input ? ShouldAssert.True : ShouldAssert.False;
+    }
+
+    if (current === ShouldAssert.DefaultTrueRoot) {
+        return ShouldAssert.True;
+    }
+
+    return current;
+}
+
+export function validateNonNullableFieldsTraverse(objects: object[], typeFields: GraphQLFieldMap<any, any>, shouldAssert: ShouldAssert, path: string[] = []): string[] {
     let keys: string[] = Array.from(new Set(flatten(objects.map(_ => Object.keys(_)))));
 
     return keys.reduce((agg, key) => {
@@ -79,7 +114,7 @@ export function validateNonNullableFieldsTraverse(objects: object[], typeFields:
         const values = objects.map(_ => _[key]).filter(_ => _);
 
         if (isListType(type)) {
-            return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, true, newPath)))];
+            return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, ShouldAssert.True, newPath)))];
         } else {
             return [...agg, ...validateNonNullableFields(values, innerType, shouldAssert, newPath)];
         }

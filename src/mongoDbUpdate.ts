@@ -1,49 +1,110 @@
-import { FICTIVE_INC, clear } from './common';
+import { addPrefixToProperties, isPrimitive } from './common';
 import { logOnError } from './logger';
+import { OVERWRITE, FICTIVE_INC } from './graphQLUpdateType';
+
+export enum SetOverwrite {
+    DefaultTrueRoot,
+    True,
+    False
+}
 
 export interface UpdateArgs {
-    setOnInsert?: any,
-    set?: any,
-    inc?: any,
+    setOnInsert?: object,
+    set?: object,
+    inc?: object,
 }
 
 export interface UpdateObj {
-    $setOnInsert?: any
-    $set?: any
-    $inc?: any
+    $setOnInsert?: object
+    $set?: object
+    $inc?: IncObj
+}
+
+export interface IncObj {
+    [key: string]: number
 }
 
 export interface updateParams {
-    update?: UpdateObj,
-    options?: any
+    update: UpdateObj,
+    options?: { upsert?: boolean }
 }
 
-function getMongoDbUpdate(update: UpdateArgs): updateParams {
-    return clear({
-        update: {
-            $setOnInsert: update.setOnInsert,
-            $set: update.set ? flattenMongoDbSet(update.set) : undefined,
-            $inc: update.inc
-        },
-        options: update.setOnInsert ? { upsert: true } : undefined
-    }, FICTIVE_INC);
+export const getMongoDbUpdate = logOnError((update: UpdateArgs, overwrite: boolean = false): updateParams => {
+    const updateParams: updateParams = {
+        update: {}
+    };
+
+    if (update.setOnInsert) {
+        updateParams.update.$setOnInsert = update.setOnInsert;
+        updateParams.options = { upsert: true };
+    }
+
+    if (update.set) {
+        updateParams.update.$set = getMongoDbSet(update.set, overwrite ? SetOverwrite.DefaultTrueRoot : SetOverwrite.False);
+    }
+
+    if (update.inc) {
+        updateParams.update.$inc = getMongoDbInc(update.inc);
+    }
+
+    return updateParams;
+});
+
+export function getMongoDbSet(set: object, setOverwrite: SetOverwrite): object {
+    return Object.keys(set).filter(_ => _ !== OVERWRITE).reduce((agg, key) => {
+        const value = set[key];
+
+        if (isPrimitive(value)) {
+            if (value === undefined) return agg;
+            return { ...agg, [key]: value };
+        }
+
+        if (Array.isArray(value)) {
+            return { ...agg, [key]: value };
+        }
+
+
+        const childOverwrite = getOverwrite(setOverwrite, value[OVERWRITE]);
+        const child = getMongoDbSet(value, childOverwrite);
+
+        if (childOverwrite === SetOverwrite.False) {
+            return { ...agg, ...addPrefixToProperties(child, `${key}.`) };
+        }
+
+        return { ...agg, [key]: child };
+    }, {});
 }
 
-function flattenMongoDbSet(set: object, path: string[] = []): object {
-    return Object.assign({}, ...Object.keys(set)
-        .map(key => {
-            const value = set[key];
-            const newPath = [...path, key];
+export function getOverwrite(current: SetOverwrite, input?: boolean): SetOverwrite {
+    if (current === SetOverwrite.True) {
+        return SetOverwrite.True;
+    }
 
-            if (typeof value != 'object' ||
-                Array.isArray(value) ||
-                value instanceof Date ||
-                value === null) {
-                return { [newPath.join(".")]: value }
-            }
+    if (typeof input !== "undefined") {
+        return input ? SetOverwrite.True : SetOverwrite.False;
+    }
 
-            return flattenMongoDbSet(value, newPath);
-        }));
+    if (current === SetOverwrite.DefaultTrueRoot) {
+        return SetOverwrite.True;
+    }
+
+    return current;
 }
 
-export default logOnError(getMongoDbUpdate);
+export function getMongoDbInc(inc: object): IncObj {
+    return Object.keys(inc).filter(_ => _ !== FICTIVE_INC).reduce((agg, key) => {
+        const value = inc[key];
+
+        if (typeof value === "number") {
+            return { ...agg, [key]: value }
+        }
+
+        const child = getMongoDbInc(value);
+
+        if (Object.keys(child).length === 0) {
+            return agg;
+        }
+
+        return { ...agg, ...addPrefixToProperties(child, `${key}.`) };
+    }, {});
+}
