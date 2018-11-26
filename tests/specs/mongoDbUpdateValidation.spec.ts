@@ -1,5 +1,5 @@
 import { ObjectType } from "../utils/types";
-import { validateUpdateArgs, validateNonNullableFields, validateNonNullableFieldsAssert, validateNonNullListField, validateNonNullableFieldsTraverse, flattenListField } from "../../src/mongoDbUpdateValidation";
+import { validateUpdateArgs, validateNonNullableFields, validateNonNullableFieldsAssert, validateNonNullListField, validateNonNullableFieldsTraverse, flattenListField, ShouldAssert } from "../../src/mongoDbUpdateValidation";
 import { expect } from "chai";
 import { GraphQLObjectType, GraphQLType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
 import { UpdateArgs } from "../../src/mongoDbUpdate";
@@ -59,7 +59,7 @@ describe("mongoDbUpdateValidation", () => {
 
             // Act
             try {
-                validateUpdateArgs(test.updateArgs, test.type);
+                validateUpdateArgs(test.updateArgs, test.type, false);
             } catch (err) {
                 error = err;
             }
@@ -163,7 +163,7 @@ describe("mongoDbUpdateValidation", () => {
             const objects = Object.keys(test.updateArgs).map(_ => test.updateArgs[_]);
 
             // Act
-            const errors = validateNonNullableFields(objects, test.type, true);
+            const errors = validateNonNullableFields(objects, test.type, ShouldAssert.True);
 
             // Assert
             expect(errors).to.have.members(test.expectedErrors, "Should detect correct errors");
@@ -289,7 +289,7 @@ describe("mongoDbUpdateValidation", () => {
 
         tests.forEach(test => it(test.description, () => {
             // act
-            const errors = validateNonNullableFieldsTraverse(test.objects, test.type.getFields(), true, test.path);
+            const errors = validateNonNullableFieldsTraverse(test.objects, test.type.getFields(), ShouldAssert.True, test.path);
 
             // Assert
             expect(errors).to.have.members(test.expectedErrors, "Should detect correct errors");

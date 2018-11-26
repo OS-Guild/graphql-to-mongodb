@@ -26,6 +26,8 @@ export const NestedType = new GraphQLObjectType({
         nonNullList: { type: new GraphQLNonNull(new GraphQLList(GraphQLString)) },
         listOfNonNulls: { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) },
 
+        recursive: { type: NestedType },
+
         resolveScalar: {
             type: GraphQLString,
             resolve: obj => obj.stringScalar,

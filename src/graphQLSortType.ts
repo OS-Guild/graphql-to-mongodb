@@ -1,7 +1,5 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLType, GraphQLInputFieldConfigMap, GraphQLObjectType, GraphQLInputType } from 'graphql';
-import { cache, setSuffix, getUnresolvedFieldsTypes, clear, FICTIVE_SORT, FieldMap } from './common';
-
-const sortTypesCache = {};
+import { cache, setSuffix, getUnresolvedFieldsTypes, typesCache, FICTIVE_SORT, FieldMap } from './common';
 
 function getGraphQLSortType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputType {
     if (type instanceof GraphQLScalarType ||
@@ -19,7 +17,7 @@ function getGraphQLSortType(type: GraphQLObjectType, ...excludedFields: string[]
 
     const sortTypeName = setSuffix(type.name, 'Type', 'SortType');
 
-    return cache(sortTypesCache, sortTypeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, sortTypeName, () => new GraphQLInputObjectType({
         name: sortTypeName,
         fields: getGraphQLSortTypeFields(type, ...excludedFields)
     }));

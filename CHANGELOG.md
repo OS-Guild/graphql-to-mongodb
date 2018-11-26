@@ -1,4 +1,8 @@
 # Change Log
+### 1.6.0
+- Add overwrite flag for nested objects in update args under `set`. Allows for overwriting of entire object instead of just the specified fields. Update validation adjusted to accomadate new flag.
+- More tests
+---
 ##### 1.5.1
 - Bug fix, non-null validation should only apply on upserts or list items
 ---

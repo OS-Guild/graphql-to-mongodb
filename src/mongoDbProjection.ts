@@ -1,4 +1,4 @@
-import { getTypeFields, getInnerType, cache, flatten } from './common';
+import { getTypeFields, getInnerType, cache, flatten, addPrefixToProperties } from './common';
 import { isType, FieldNode, GraphQLObjectType, GraphQLResolveInfo, SelectionNode, FragmentSpreadNode } from 'graphql';
 import { logOnError } from './logger';
 
@@ -24,7 +24,7 @@ export const getMongoDbProjection = logOnError((info: GraphQLResolveInfo, graphQ
 
     const requestedFields = getRequestedFields(info);
 
-    const projection = getProjection(requestedFields, graphQLType, [], ...excludedFields);
+    const projection = getProjection(requestedFields, graphQLType, ...excludedFields);
 
     const resolveFieldsDependencies = getResolveFieldsDependencies(requestedFields, graphQLType);
 
@@ -93,7 +93,7 @@ function mergeNodes(fieldGraphs: FieldGraph[]): ProjectionField {
     }, {});
 }
 
-export function getProjection(fieldNode: ProjectionField, graphQLType: GraphQLObjectType, path: string[] = [], ...excludedFields: string[]): MongoDbProjection {
+export function getProjection(fieldNode: ProjectionField, graphQLType: GraphQLObjectType, ...excludedFields: string[]): MongoDbProjection {
     const typeFields = getTypeFields(graphQLType)();
 
     return Object.assign({}, ...Object.keys(fieldNode)
@@ -101,14 +101,15 @@ export function getProjection(fieldNode: ProjectionField, graphQLType: GraphQLOb
             && !excludedFields.includes(key)
             && !typeFields[key].resolve)
         .map(key => {
-            const newPath = [...path, key];
             const field = fieldNode[key];
 
             if (field === 1) {
-                return { [newPath.join(".")]: 1 };
+                return { [key]: 1 };
             }
 
-            return getProjection(field, getInnerType(typeFields[key].type) as GraphQLObjectType, newPath);
+            const child = getProjection(field, getInnerType(typeFields[key].type) as GraphQLObjectType);
+
+            return addPrefixToProperties(child, `${key}.`);
         }));
 }
 
@@ -138,7 +139,6 @@ export function getResolveFieldsDependencies(fieldNode: ProjectionField, graphQL
 }
 
 export function mergeProjectionAndResolveDependencies(projection: MongoDbProjection, resolveDependencies: string[]): MongoDbProjection {
-
     const newProjection = { ...projection };
 
     for (var i = 0; i < resolveDependencies.length; i++) {

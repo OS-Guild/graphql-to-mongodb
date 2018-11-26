@@ -1,10 +1,7 @@
 import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, GraphQLType } from 'graphql';
-import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap } from './common';
+import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap, typesCache } from './common';
 import { warn } from './logger';
 
-const filterTypesCache = {};
-const objectFilterTypesCache = {};
-const scalarFilterTypesCache = {};
 const warnedIndependentResolvers = {};
 
 export const OprType = new GraphQLEnumType({
@@ -32,7 +29,7 @@ export const OprExistsType = new GraphQLEnumType({
 export function getGraphQLFilterType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputObjectType {
     const filterTypeName = setSuffix(type.name, 'Type', 'FilterType');
 
-    return cache(filterTypesCache, filterTypeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, filterTypeName, () => new GraphQLInputObjectType({
         name: filterTypeName,
         fields: getOrAndFields(type, ...excludedFields)
     }));
@@ -67,7 +64,7 @@ function getGraphQLObjectFilterType(
     }
 
     const typeName = setSuffix(type.name, 'Type', 'ObjectFilterType');
-    return cache(objectFilterTypesCache, typeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, typeName, () => new GraphQLInputObjectType({
         name: typeName,
         fields: getInputObjectTypeFields(type, ...excludedFields)
     }));
@@ -87,7 +84,7 @@ function getInputObjectTypeFields(type: GraphQLObjectType, ...excludedFields: st
 function getGraphQLScalarFilterType(scalarType: GraphQLScalarType | GraphQLEnumType): GraphQLInputObjectType {
     const typeName = scalarType.toString() + "Filter";
 
-    return cache(scalarFilterTypesCache, typeName, () => new GraphQLInputObjectType({
+    return cache(typesCache, typeName, () => new GraphQLInputObjectType({
         name: typeName,
         description: `Filter type for ${typeName} scalar`,
         fields: getGraphQLScalarFilterTypeFields(scalarType)
@@ -130,10 +127,4 @@ function warnIndependentResolveFields(type: GraphQLObjectType): void {
 
         return 1;
     });
-}
-
-export function clearTypeCache(): void {
-    for (var member in filterTypesCache) delete filterTypesCache[member];
-    for (var member in objectFilterTypesCache) delete objectFilterTypesCache[member];
-    for (var member in scalarFilterTypesCache) delete scalarFilterTypesCache[member];
 }

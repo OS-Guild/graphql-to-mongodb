@@ -1,7 +1,8 @@
 export { getGraphQLFilterType } from './src/graphQLFilterType';
 export { default as getMongoDbFilter } from './src/mongoDbFilter';
-export { getGraphQLUpdateType, getGraphQLInsertType } from './src/graphQLMutationType';
-export { default as getMongoDbUpdate } from './src/mongoDbUpdate';
+export { getGraphQLUpdateType } from './src/graphQLUpdateType';
+export { getGraphQLInsertType } from './src/graphQLInsertType';
+export { getMongoDbUpdate } from './src/mongoDbUpdate';
 export { validateUpdateArgs } from "./src/mongoDbUpdateValidation";
 export { default as GraphQLPaginationType } from './src/graphQLPaginationType';
 export { default as getGraphQLSortType } from './src/graphQLSortType';
