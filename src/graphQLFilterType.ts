@@ -1,10 +1,10 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, GraphQLType } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap, typesCache } from './common';
 import { warn } from './logger';
 
 const warnedIndependentResolvers = {};
 
-export const OprType = new GraphQLEnumType({
+const GetOprType = () => cache(typesCache, "Opr", () => new GraphQLEnumType({
     name: 'Opr',
     values: {
         EQL: { value: "$eq" },
@@ -16,15 +16,15 @@ export const OprType = new GraphQLEnumType({
         NE: { value: "$ne" },
         NIN: { value: "$nin" }
     }
-});
+}));
 
-export const OprExistsType = new GraphQLEnumType({
+const GetOprExistsType = () => cache(typesCache, "OprExists", () => new GraphQLEnumType({
     name: 'OprExists',
     values: {
         EXISTS: { value: "exists" },
         NOT_EXISTS: { value: "not_exists" },
     }
-});
+}));
 
 export function getGraphQLFilterType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputObjectType {
     const filterTypeName = setSuffix(type.name, 'Type', 'FilterType');
@@ -74,8 +74,8 @@ function getInputObjectTypeFields(type: GraphQLObjectType, ...excludedFields: st
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(type, getGraphQLObjectFilterType, ...excludedFields)();
         warnIndependentResolveFields(type);
-
-        generatedFields['opr'] = { type: OprExistsType };
+        
+        generatedFields['opr'] = { type: GetOprExistsType() };
 
         return generatedFields;
     };
@@ -93,7 +93,7 @@ function getGraphQLScalarFilterType(scalarType: GraphQLScalarType | GraphQLEnumT
 
 function getGraphQLScalarFilterTypeFields(scalarType: GraphQLScalarType | GraphQLEnumType): GraphQLInputFieldConfigMap {
     const fields = {
-        opr: { type: OprType, description: 'DEPRECATED: Switched to the more intuitive operator fields' },
+        opr: { type: GetOprType(), description: 'DEPRECATED: Switched to the more intuitive operator fields' },
         value: { type: scalarType, description: 'DEPRECATED: Switched to the more intuitive operator fields' },
         values: { type: new GraphQLList(scalarType), description: 'DEPRECATED: Switched to the more intuitive operator fields' },
         EQ: { type: scalarType },

@@ -1,4 +1,4 @@
-import { isType, GraphQLList, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode } from 'graphql'
+import { GraphQLList, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType } from 'graphql'
 
 export const FICTIVE_SORT = "_FICTIVE_SORT";
 
@@ -6,7 +6,8 @@ export interface cacheCallback<T> {
     (key): T
 }
 
-export const typesCache: { [key: string]: GraphQLType } = {};
+export const typesCache: { [key: string]: GraphQLNamedType } = {};
+export const getTypesCache: () => { [key: string]: GraphQLNamedType } = () => ({ ...typesCache });
 
 export function clearTypesCache() {
     Object.keys(typesCache).forEach(_ => delete typesCache[_]);
@@ -126,10 +127,6 @@ export function isNonNullType(graphQLType: GraphQLType): boolean {
     }
 
     return false;
-}
-
-export function isScalarType(graphQLType: GraphQLType): boolean {
-    return graphQLType instanceof GraphQLScalarType || graphQLType instanceof GraphQLEnumType;
 }
 
 export function flatten<T>(nestedArray: T[][]): T[] {

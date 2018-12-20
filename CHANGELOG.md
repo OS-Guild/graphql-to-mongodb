@@ -1,4 +1,7 @@
 # Change Log
+##### 1.6.1
+- Expose the types cache
+---
 ### 1.6.0
 - Add overwrite flag for nested objects in update args under `set`. Allows for overwriting of entire object instead of just the specified fields. Update validation adjusted to accomadate new flag.
 - More tests
