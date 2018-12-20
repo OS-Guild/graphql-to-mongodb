@@ -1,10 +1,10 @@
 import getMongoDbFilter from './mongoDbFilter';
 import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 import { getGraphQLFilterType } from './graphQLFilterType';
-import getGraphQLSortType from './graphQLSortType';
+import { getGraphQLSortType } from './graphQLSortType';
 import GraphQLPaginationType from './graphQLPaginationType';
 import getMongoDbSort, { MongoDbSort } from "./mongoDbSort";
-import { isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
+import { isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType, GraphQLInputObjectType } from 'graphql';
 
 export interface QueryCallback<TSource, TContext> {
     (
@@ -53,7 +53,11 @@ export function getMongoDbQueryResolver<TSource, TContext>(
     }
 }
 
-export function getGraphQLQueryArgs(graphQLType: GraphQLObjectType): object {
+export function getGraphQLQueryArgs(graphQLType: GraphQLObjectType): { [key: string]: { type: GraphQLInputObjectType } } & { 
+    filter: { type: GraphQLInputObjectType },
+    sort: { type: GraphQLInputObjectType } ,
+    pagination: { type: GraphQLInputObjectType } 
+} {
     return {
         filter: { type: getGraphQLFilterType(graphQLType) },
         sort: { type: getGraphQLSortType(graphQLType) },

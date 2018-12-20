@@ -1,20 +1,25 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLType, GraphQLInputFieldConfigMap, GraphQLObjectType, GraphQLInputType } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputType, GraphQLType } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, typesCache, FICTIVE_SORT, FieldMap } from './common';
 
-function getGraphQLSortType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputType {
+
+function getGraphQLSortTypeObject(type: GraphQLType, ...excludedFields): GraphQLInputType {
     if (type instanceof GraphQLScalarType ||
         type instanceof GraphQLEnumType) {
-        return SortType;
+        return GraphQLSortType;
     }
 
     if (type instanceof GraphQLNonNull) {
-        return getGraphQLSortType(type.ofType);
+        return getGraphQLSortTypeObject(type.ofType);
     }
 
-    if (type instanceof GraphQLList) {
-        return undefined;
+    if (type instanceof GraphQLObjectType) {
+        return getGraphQLSortType(type, ...excludedFields);
     }
+    
+    return undefined;
+}
 
+export function getGraphQLSortType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputObjectType {
     const sortTypeName = setSuffix(type.name, 'Type', 'SortType');
 
     return cache(typesCache, sortTypeName, () => new GraphQLInputObjectType({
@@ -25,22 +30,20 @@ function getGraphQLSortType(type: GraphQLObjectType, ...excludedFields: string[]
 
 function getGraphQLSortTypeFields(type: GraphQLObjectType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
     return () => {
-        const fields = getUnresolvedFieldsTypes(type, getGraphQLSortType, ...excludedFields)();
+        const fields = getUnresolvedFieldsTypes(type, getGraphQLSortTypeObject, ...excludedFields)();
 
         if (Object.keys(fields).length > 0) {
             return fields;
         }
 
-        return { [FICTIVE_SORT]: { type: SortType, description: "IGNORE. Due to limitations of the package, objects with no sortable fields cannot be ommited. All input object types must have at least one field" } }
+        return { [FICTIVE_SORT]: { type: GraphQLSortType, isDeprecated: true, description: "IGNORE. Due to limitations of the package, objects with no sortable fields are not ommited. GraphQL input object types must have at least one field" } }
     }
 }
 
-const SortType = new GraphQLEnumType({
+export const GraphQLSortType = new GraphQLEnumType({
     name: 'SortType',
     values: {
         ASC: { value: 1 },
         DESC: { value: -1 }
     }
 });
-
-export default getGraphQLSortType;

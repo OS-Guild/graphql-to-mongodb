@@ -1,5 +1,5 @@
-import { isType, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType } from 'graphql';
-import { getTypeFields, getInnerType, isListType, isScalarType } from './common';
+import { isType, GraphQLObjectType, isLeafType } from 'graphql';
+import { getTypeFields, getInnerType, isListType } from './common';
 import { warn, logOnError } from './logger';
 
 const operatorsMongoDbKeys = {
@@ -41,11 +41,11 @@ function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path
             const newPath = [...path, key];
             const filters = [];
 
-            if (!isScalarType(fieldType) && fieldFilter.opr) {
+            if (!isLeafType(fieldType) && fieldFilter.opr) {
                 filters.push(parseMongoExistsFilter(fieldFilter.opr));
             }
 
-            if (!isScalarType(fieldType) && isListType(typeFields[key].type)) {
+            if (!isLeafType(fieldType) && isListType(typeFields[key].type)) {
                 const elementFilter = parseMongoDbFieldFilter(fieldType, fieldFilter, [], ...excludedFields);
 
                 if (Object.keys(elementFilter).length > 0) {
@@ -64,7 +64,7 @@ function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: object, path
 }
 
 function parseMongoDbFieldFilter(type: GraphQLObjectType, fieldFilter: object, path: string[], ...excludedFields: string[]): object {
-    if (isScalarType(type)) {
+    if (isLeafType(type)) {
         const elementFilter = parseMongoDbScalarFilter(fieldFilter);
 
         return Object.keys(elementFilter).length > 0

@@ -3,7 +3,7 @@ import { getGraphQLUpdateType } from './graphQLUpdateType';
 import getMongoDbFilter from './mongoDbFilter';
 import { getMongoDbUpdate } from './mongoDbUpdate';
 import { validateUpdateArgs } from './mongoDbUpdateValidation';
-import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType } from 'graphql';
+import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType, GraphQLInputObjectType } from 'graphql';
 import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 
 export interface UpdateCallback<TSource, TContext> {
@@ -48,7 +48,10 @@ export function getMongoDbUpdateResolver<TSource, TContext>(
     };
 }
 
-export function getGraphQLUpdateArgs(graphQLType: GraphQLObjectType): object {
+export function getGraphQLUpdateArgs(graphQLType: GraphQLObjectType): { [key: string]: { type: GraphQLNonNull<GraphQLInputObjectType> } } & {
+    filter: { type: GraphQLNonNull<GraphQLInputObjectType> },
+    update: { type: GraphQLNonNull<GraphQLInputObjectType> }
+} {
     return {
         filter: { type: new GraphQLNonNull(getGraphQLFilterType(graphQLType)) },
         update: { type: new GraphQLNonNull(getGraphQLUpdateType(graphQLType)) }
