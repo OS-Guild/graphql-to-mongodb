@@ -1,0 +1,23 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "apollo-server-express": "^2.2.0",
+    "express": "^4.16.4",
+    "graphql": "^14.0.2",
+    "graphql-to-mongodb": "1.6.1",
+    "mongodb": "^3.1.10"
+  },
+  "devDependencies": {
+    "@types/graphql": "^14.0.3",
+    "@types/mongodb": "^3.1.15",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.2.2"
+  }
+}

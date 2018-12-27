@@ -1,0 +1,9 @@
+# Examples
+
+* **express:** Vanilla `graphql` using `express`
+* **graphql-tools:** Using `graphql-tools` to define the schema through the schema definition language.
+* **apollo:** `apollo-server` implementation. Currently doesn't support projection due to conflict with the package.
+
+Run with `docker-compose up` to start with a paired MongoDb immage, or enter a new connection string in `db.ts` and run `yarn start`.
+
+**Note:** There are currently two solution to integrate the package with the sdl, neither is entirely elegant. Suggestions for improvement are welcome.

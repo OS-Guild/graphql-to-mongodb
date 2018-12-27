@@ -1,6 +1,5 @@
 {
     "compilerOptions": {
-        "outDir": "lib",
         "target": "es5",
         "module": "commonjs",
         "lib": [
@@ -9,14 +8,7 @@
             "esnext.asynciterable"
         ],
         "allowSyntheticDefaultImports": true,
-        "declaration": true,
         "moduleResolution": "node",
         "noEmitOnError": true
-    },
-    "exclude": [
-        "tests",
-        "lib",
-        "examples"
-    ],
-    "compileOnSave": true
+    }
 }
