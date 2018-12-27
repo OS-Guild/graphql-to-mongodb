@@ -1,0 +1,24 @@
+{
+  "name": "express",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start": "ts-node src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.4",
+    "express-graphql": "^0.7.1",
+    "graphql": "^14.0.2",
+    "graphql-to-mongodb": "1.6.1",
+    "mongodb": "^3.1.10"
+  },
+  "devDependencies": {
+    "@types/express-graphql": "^0.6.2",
+    "@types/graphql": "^14.0.3",
+    "@types/mongodb": "^3.1.15",
+    "typescript": "^3.2.2",
+    "ts-node": "^7.0.1"
+  }
+}
