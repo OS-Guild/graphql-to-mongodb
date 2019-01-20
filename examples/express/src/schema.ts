@@ -39,8 +39,8 @@ const QueryType = new GraphQLObjectType({
 
 
 
-const MutationTyoe = new GraphQLObjectType({
-    name: 'MutationTyoe',
+const MutationType = new GraphQLObjectType({
+    name: 'MutationType',
     fields: () => ({
         updatePeople: {
             type: GraphQLInt,
@@ -74,7 +74,7 @@ const MutationTyoe = new GraphQLObjectType({
 
 const Schema = new GraphQLSchema({
     query: QueryType,
-    mutation: MutationTyoe
+    mutation: MutationType
 })
 
 export default Schema;
