@@ -42,6 +42,7 @@ function getOrAndFields(type: GraphQLObjectType, ...excludedFields: string[]): (
 
         generatedFields['OR'] = { type: new GraphQLList(getGraphQLFilterType(type, ...excludedFields)) };
         generatedFields['AND'] = { type: new GraphQLList(getGraphQLFilterType(type, ...excludedFields)) };
+        generatedFields['NOR'] = { type: new GraphQLList(getGraphQLFilterType(type, ...excludedFields)) };
 
         return generatedFields;
     };
@@ -74,7 +75,7 @@ function getInputObjectTypeFields(type: GraphQLObjectType, ...excludedFields: st
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(type, getGraphQLObjectFilterType, ...excludedFields)();
         warnIndependentResolveFields(type);
-        
+
         generatedFields['opr'] = { type: GetOprExistsType() };
 
         return generatedFields;

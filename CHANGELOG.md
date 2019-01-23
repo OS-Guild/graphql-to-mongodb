@@ -1,5 +1,8 @@
 # Change Log
 ##### 1.6.1
+- `$nor`
+---
+##### 1.6.1
 - Expose the types cache
 ---
 ### 1.6.0

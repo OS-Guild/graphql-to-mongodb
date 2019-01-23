@@ -13,19 +13,22 @@ const operatorsMongoDbKeys = {
     NIN: '$nin',
     REGEX: '$regex',
     OPTIONS: '$options',
+    OR: '$or',
+    AND: '$and',
+    NOR: '$nor',
 };
+
+const rootOperators = ["OR", "AND", "NOR"]
 
 function getMongoDbFilter(graphQLType: GraphQLObjectType, graphQLFilter: object = {}): object {
     if (!isType(graphQLType)) throw 'First arg of getMongoDbFilter must be the base graphqlType to be parsed'
 
-    const filter = parseMongoDbFilter(graphQLType, graphQLFilter, [], "OR", "AND");
+    const filter = parseMongoDbFilter(graphQLType, graphQLFilter, [], ...rootOperators);
 
-    if (graphQLFilter["OR"]) {
-        filter["$or"] = graphQLFilter["OR"].map(_ => getMongoDbFilter(graphQLType, _));
-    }
-    if (graphQLFilter["AND"]) {
-        filter["$and"] = graphQLFilter["AND"].map(_ => getMongoDbFilter(graphQLType, _));
-    }
+    rootOperators
+        .map(key => ({ key, args: graphQLFilter[key] }))
+        .filter(({ args }) => !!args)
+        .forEach(({key, args}) => filter[operatorsMongoDbKeys[key]] = args.map(_ => getMongoDbFilter(graphQLType, _)));
 
     return filter;
 }
