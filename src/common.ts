@@ -1,4 +1,4 @@
-import { GraphQLList, GraphQLScalarType, GraphQLEnumType, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType } from 'graphql'
+import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType } from 'graphql'
 
 export const FICTIVE_SORT = "_FICTIVE_SORT";
 
@@ -105,7 +105,7 @@ export function getInnerType(graphQLType: GraphQLType): GraphQLType {
     return innerType;
 }
 
-export function isListType(graphQLType: GraphQLType): boolean {
+export function isListField(graphQLType: GraphQLType): boolean {
     let innerType = graphQLType;
 
     while (innerType instanceof GraphQLList
@@ -117,7 +117,7 @@ export function isListType(graphQLType: GraphQLType): boolean {
     return false;
 }
 
-export function isNonNullType(graphQLType: GraphQLType): boolean {
+export function isNonNullField(graphQLType: GraphQLType): boolean {
     let innerType = graphQLType;
 
     while (innerType instanceof GraphQLList

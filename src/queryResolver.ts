@@ -1,4 +1,4 @@
-import getMongoDbFilter from './mongoDbFilter';
+import { getMongoDbFilter, MongoDbFilter } from './mongoDbFilter';
 import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 import { getGraphQLFilterType } from './graphQLFilterType';
 import { getGraphQLSortType } from './graphQLSortType';
@@ -8,7 +8,7 @@ import { isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType, Gr
 
 export interface QueryCallback<TSource, TContext> {
     (
-        filter: object,
+        filter: MongoDbFilter,
         projection: MongoDbProjection,
         options: MongoDbOptions,
         source: TSource,
@@ -44,11 +44,11 @@ export function getMongoDbQueryResolver<TSource, TContext>(
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
         const projection = requiredQueryOptions.differentOutputType ? undefined : getMongoDbProjection(info, graphQLType);
-        const options: MongoDbOptions = {};
+        const options: MongoDbOptions = { projection };
         if (args.sort) options.sort = getMongoDbSort(args.sort);
         if (args.pagination && args.pagination.limit) options.limit = args.pagination.limit;
         if (args.pagination && args.pagination.skip) options.skip = args.pagination.skip;
-
+        
         return await queryCallback(filter, projection, options, source, args, context, info);
     }
 }

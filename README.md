@@ -3,7 +3,7 @@
 
 If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
 
-### [Examples](./examples/)
+### [Examples](./examples/README.md)
 ### [Change Log](./CHANGELOG.md)
 ### [Blog Post](https://blog.solutotlv.com/graphql-to-mongodb-or-how-i-learned-to-stop-worrying-and-love-generated-query-apis/?utm_source=README)
 
@@ -18,13 +18,13 @@ new GraphQLObjectType({
         name: { type: new GraphQLObjectType({
             name: 'NameType',
             fields: () => ({
-                firstName: { type: GraphQLString },
-                lastName: { type: GraphQLString }
+                first: { type: GraphQLString },
+                last: { type: GraphQLString }
             })
         }),
         fullName: {
             type: GraphQLString,
-            resolve: (obj, args, { db }) => `${obj.name.firstName} ${obj.name.lastName}`
+            resolve: (obj, args, { db }) => `${obj.name.first} ${obj.name.last}`
         }
     })
 })
@@ -39,7 +39,7 @@ Queries the first 50 persons, oldest first,  over the age of 18, and whose first
         filter: {
             age: { GT: 18 },
             name: { 
-                firstName: { EQ: "John" } 
+                first: { EQ: "John" } 
             }
         },
         sort: { age: DESC },
@@ -55,7 +55,7 @@ Queries the first 50 persons, oldest first,  over the age of 18, and whose first
 
 
 ```js
-person: {
+people: {
     type: new GraphQLList(PersonType),
     args: getGraphQLQueryArgs(PersonType),
     resolve: getMongoDbQueryResolver(PersonType,
@@ -70,14 +70,13 @@ You'll notice that integrating the package takes little more than adding some fa
     ```js 
     fullName: {
         type: GraphQLString,
-        resolve: (obj, args, { db }) => `${obj.name.firstName} ${obj.name.lastName}`,
-        dependencies: ['name'] // or ['name.firstName', 'name.LastName'], whatever tickles your fancy
+        resolve: (obj, args, { db }) => `${obj.name.first} ${obj.name.last}`,
+        dependencies: ['name'] // or ['name.first', 'name.Last'], whatever tickles your fancy
     }
     ```
     This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
 *  As of `mongodb` package version 3.0, you should implement the resolve callback as:
    ```js
-   options.projection = projection;
    return await context.db.collection('people').find(filter, options).toArray();
    ```
 
@@ -98,13 +97,14 @@ age: IntFilter
 name: NameObjectFilterType
 OR: [PersonFilterType]
 AND: [PersonFilterType]
+NOR: [PersonFilterType]
 ```
 \* Filtering is possible over every none resolve field!
 
 **NameObjectFilterType:**
 ```
-firstName: StringFilter
-lastName: StringFilter
+first: StringFilter
+last: StringFilter
 opr: OprExists
 ```
 `OprExists` enum tyoe can be `EXISTS` or `NOT_EXISTS`, and can be found in nested objects and arrays
@@ -119,7 +119,7 @@ LT: String
 LTE: String
 NEQ: String
 NIN: [String]
-NOT: StringNotFilter
+NOT: [StringFNotilter]
 ```
 
 **PersonSortType:**
@@ -134,4 +134,4 @@ limit: Int
 skip: Int
 ```
 
-### Functionality galore! Update, insert, and extensiable custom fields.
+### Functionality galore! Also permits update, insert, and extensiable custom fields.
