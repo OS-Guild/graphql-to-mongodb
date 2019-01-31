@@ -104,7 +104,7 @@ function getGraphQLScalarFilterTypeFields(scalarType: GraphQLLeafType, not: bool
         LT: { type: scalarType, description: '$lt' },
         LTE: { type: scalarType, description: '$lte' },
         NE: { type: scalarType, description: '$ne' },
-        NIN: { type: new GraphQLList(scalarType), description: '$eq' }
+        NIN: { type: new GraphQLList(scalarType), description: '$nin' }
     };
 
     if (scalarType.name === 'String') enhanceWithRegexFields(fields);

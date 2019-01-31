@@ -44,7 +44,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: GraphQLString, description: "$lt" },
                     LTE: { type: GraphQLString, description: "$lte" },
                     NE: { type: GraphQLString, description: "$ne" },
-                    NIN: { type: new GraphQLList(GraphQLString), description: "$eq" },
+                    NIN: { type: new GraphQLList(GraphQLString), description: "$nin" },
 
                     REGEX: { type: GraphQLString, description: "$regex" },
                     OPTIONS: { type: GraphQLString, description: "$options. Modifiers for the $regex expression. Field be ignored on its own" },
@@ -62,7 +62,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: GraphQLString, description: "$lt" },
                     LTE: { type: GraphQLString, description: "$lte" },
                     NE: { type: GraphQLString, description: "$ne" },
-                    NIN: { type: new GraphQLList(GraphQLString), description: "$eq" },
+                    NIN: { type: new GraphQLList(GraphQLString), description: "$nin" },
 
                     REGEX: { type: GraphQLString, description: "$regex" },
                     OPTIONS: { type: GraphQLString, description: "$options. Modifiers for the $regex expression. Field be ignored on its own" },
@@ -87,7 +87,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: GraphQLInt, description: "$lt" },
                     LTE: { type: GraphQLInt, description: "$lte" },
                     NE: { type: GraphQLInt, description: "$ne" },
-                    NIN: { type: new GraphQLList(GraphQLInt), description: "$eq" },
+                    NIN: { type: new GraphQLList(GraphQLInt), description: "$nin" },
                 } 
             });
 
@@ -102,7 +102,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: GraphQLInt, description: "$lt" },
                     LTE: { type: GraphQLInt, description: "$lte" },
                     NE: { type: GraphQLInt, description: "$ne" },
-                    NIN: { type: new GraphQLList(GraphQLInt), description: "$eq" },
+                    NIN: { type: new GraphQLList(GraphQLInt), description: "$nin" },
 
                     NOT: { type: intNotFilter, description: "$not" },
                     
@@ -124,7 +124,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: GraphQLFloat, description: "$lt" },
                     LTE: { type: GraphQLFloat, description: "$lte" },
                     NE: { type: GraphQLFloat, description: "$ne" },
-                    NIN: { type: new GraphQLList(GraphQLFloat), description: "$eq" },
+                    NIN: { type: new GraphQLList(GraphQLFloat), description: "$nin" },
                 } 
             });
 
@@ -139,7 +139,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: GraphQLFloat, description: "$lt" },
                     LTE: { type: GraphQLFloat, description: "$lte" },
                     NE: { type: GraphQLFloat, description: "$ne" },
-                    NIN: { type: new GraphQLList(GraphQLFloat), description: "$eq" },
+                    NIN: { type: new GraphQLList(GraphQLFloat), description: "$nin" },
 
                     NOT: { type: floatNotFilter, description: "$not" },
                     
@@ -161,7 +161,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: CharactersEnum, description: "$lt" },
                     LTE: { type: CharactersEnum, description: "$lte" },
                     NE: { type: CharactersEnum, description: "$ne" },
-                    NIN: { type: new GraphQLList(CharactersEnum), description: "$eq" },
+                    NIN: { type: new GraphQLList(CharactersEnum), description: "$nin" },
                 } 
             });
 
@@ -176,7 +176,7 @@ describe("graphQLFilterType", () => {
                     LT: { type: CharactersEnum, description: "$lt" },
                     LTE: { type: CharactersEnum, description: "$lte" },
                     NE: { type: CharactersEnum, description: "$ne" },
-                    NIN: { type: new GraphQLList(CharactersEnum), description: "$eq" },
+                    NIN: { type: new GraphQLList(CharactersEnum), description: "$nin" },
 
                     NOT: { type: charactersNotFilter, description: "$not" },
                     
