@@ -1,6 +1,7 @@
 import { GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLNonNull, GraphQLList, GraphQLSchema } from "graphql";
-import { getGraphQLQueryArgs, getMongoDbQueryResolver, getGraphQLUpdateArgs, getMongoDbUpdateResolver, getGraphQLInsertType } from "graphql-to-mongodb";
+import { getGraphQLQueryArgs, getMongoDbQueryResolver, getGraphQLUpdateArgs, getMongoDbUpdateResolver, getGraphQLInsertType, getGraphQLFilterType, getMongoDbFilter } from "graphql-to-mongodb";
 import { Db } from "mongodb";
+import { getMongoDbQueryField1, getMongoDbQueryField2 } from "./queryFieldUtil";
 
 const PersonType = new GraphQLObjectType({
     name: 'PersonType',
@@ -17,7 +18,7 @@ const PersonType = new GraphQLObjectType({
         },
         fullName: {
             type: GraphQLString,
-            resolve: (source) => `${source.name.first} ${source.name.last}`,
+            resolve: (source) => [source.name.first, source.name.last].filter(_ => !!_).join(' '),
             dependencies: ['name']
         }
     })
@@ -33,7 +34,9 @@ const QueryType = new GraphQLObjectType({
                 async (filter, projection, options, obj, args, { db }: { db: Db }) => {
                     return await db.collection('people').find(filter, { ...options, projection }).toArray();
                 })
-        }
+        },
+        people1: getMongoDbQueryField1(PersonType, 'people'),
+        people2: getMongoDbQueryField2(PersonType, ({ db }: { db: Db }) => db.collection('people')),
     })
 })
 
@@ -58,8 +61,17 @@ const MutationType = new GraphQLObjectType({
             type: GraphQLString,
             args: { input: { type: getGraphQLInsertType(PersonType) } },
             resolve: async (obj, args, { db }: { db: Db }) => {
-                const result = await db.collection('people').insert(args.input);
+                const result = await db.collection('people').insertOne(args.input);
                 return JSON.stringify(result);
+            }
+        },
+        deletePeople: {
+            type: GraphQLInt,
+            args: { filter: { type: new GraphQLNonNull(getGraphQLFilterType(PersonType)) } },
+            resolve: async (obj, args, { db }: { db: Db }) => {
+                const filter = getMongoDbFilter(PersonType, args.filter);
+                const result = await db.collection('people').deleteMany(filter)
+                return result.deletedCount;
             }
         },
         clear: {

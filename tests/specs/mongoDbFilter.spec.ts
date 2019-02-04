@@ -299,6 +299,46 @@ describe("mongoDbFilter", () => {
                     }
                 }
             }
+        }, {
+            name: "Should parse everything",
+            graphQLFilter: {
+                intScalar: { GT: "some-gt", LTE: "some-lte" },
+                intList: { IN: ["some-in", "another-in"] },
+                stringScalar: { REGEX: "some-regex" },
+                nested: {
+                    floatScalar: { LT: "some-lt" },
+                    floatList: { NIN: ["some-nin", "another-nin"] },
+                    stringScalar: { NOT: { REGEX: "some-not-regex" } },
+                    recursive: {
+                        opr: "exists"
+                    }
+                },
+                nestedList: {
+                    opr: "not_exists",
+                    enumScalar: {
+                        EQ: "some-eq"
+                    },
+                    recursive: {
+                        stringList: { NOT: { NE: "some-not-ne" } }
+                    }
+                }
+            },
+            expectedMongoDbFilter: {
+                intScalar: { $gt: "some-gt", $lte: "some-lte" },
+                intList: { $in: ["some-in", "another-in"] },
+                stringScalar: { $regex: "some-regex" },
+                "nested.floatScalar": { $lt: "some-lt" },
+                "nested.floatList": { $nin: ["some-nin", "another-nin"] },
+                "nested.stringScalar": { $not: /some-not-regex/g },
+                "nested.recursive": { $exists: true },
+                nestedList: {
+                    $elemMatch: {
+                        $exists: false,
+                        enumScalar: { $eq: "some-eq" },
+                        "recursive.stringList": { $not: { $ne: "some-not-ne" } }
+                    }
+                }
+            }
         }];
 
         tests.forEach(test => it(test.name, () => {

@@ -234,9 +234,9 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
 
-"graphql-to-mongodb@file:C:/Users/yoav/Desktop/graphql-to-mongodb-1.6.1.tgz":
+graphql-to-mongodb@1.6.1:
   version "1.6.1"
-  resolved "file:C:/Users/yoav/Desktop/graphql-to-mongodb-1.6.1.tgz#67934d2bc70eca8ab55ebb9d417aed2ca8be4102"
+  resolved "https://registry.yarnpkg.com/graphql-to-mongodb/-/graphql-to-mongodb-1.6.1.tgz#8a17317053e07d478c1b9a477f39588a3d4f12cf"
 
 graphql@^14.0.2:
   version "14.0.2"
