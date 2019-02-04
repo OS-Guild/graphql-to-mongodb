@@ -184,4 +184,3 @@ export const visitors = {
     mongoFilterArgs: MongoFilterArgsVisitor,
     mongoFilterResolver: MongoFilterResolverVisitor,
 };
-

@@ -150,4 +150,3 @@ export const visitors = {
     mongofilterArgs: MongoFilterArgsVisitor,
     mongoFilterResolver: MongoFilterResolverVisitor,
 };
-
