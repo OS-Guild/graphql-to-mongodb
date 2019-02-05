@@ -47,7 +47,7 @@ describe("graphQLFilterType", () => {
                     NIN: { type: new GraphQLList(GraphQLString), description: "$nin" },
 
                     REGEX: { type: GraphQLString, description: "$regex" },
-                    OPTIONS: { type: GraphQLString, description: "$options. Modifiers for the $regex expression. Field be ignored on its own" },
+                    OPTIONS: { type: GraphQLString, description: "$options. Modifiers for the $regex expression. Field is ignored on its own" },
                 } 
             });
 
@@ -65,7 +65,7 @@ describe("graphQLFilterType", () => {
                     NIN: { type: new GraphQLList(GraphQLString), description: "$nin" },
 
                     REGEX: { type: GraphQLString, description: "$regex" },
-                    OPTIONS: { type: GraphQLString, description: "$options. Modifiers for the $regex expression. Field be ignored on its own" },
+                    OPTIONS: { type: GraphQLString, description: "$options. Modifiers for the $regex expression. Field is ignored on its own" },
 
                     NOT: { type: stringNotFilter, description: "$not" },
                     
