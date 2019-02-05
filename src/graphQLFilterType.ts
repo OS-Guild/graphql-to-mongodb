@@ -123,7 +123,7 @@ function getGraphQLScalarFilterTypeFields(scalarType: GraphQLLeafType, not: bool
 
 function enhanceWithRegexFields(fields: GraphQLInputFieldConfigMap): void {
     fields.REGEX = { type: GraphQLString, description: '$regex' };
-    fields.OPTIONS = { type: GraphQLString, description: '$options. Modifiers for the $regex expression. Field be ignored on its own' };
+    fields.OPTIONS = { type: GraphQLString, description: '$options. Modifiers for the $regex expression. Field is ignored on its own' };
 }
 
 function enhanceWithNotField(fields: GraphQLInputFieldConfigMap, scalarType: GraphQLScalarType | GraphQLEnumType): void {
