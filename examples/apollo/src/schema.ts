@@ -20,6 +20,7 @@ type Query {
 type Mutation {
     updatePeople: Int @mongoUpdateArgs(type: "Person") @mongoUpdateResolver(type: "Person", updateOptions: { differentOutputType: true, validateUpdateArgs: true })
     insertPerson: String @mongoInsertArgs(type: "Person", key: "input")
+    deletePeople: String @mongoFilterArgs(type: "Person", key: "filter") @mongoFilterResolver(type: "Person", key: "filter")
     clear: Int
 }
 `
@@ -27,12 +28,12 @@ type Mutation {
 export const resolvers = {
     Person: {
         fullName: (source) => {
-            return `${source.name.first} ${source.name.last}`;
+            return [source.name.first, source.name.last].filter(_ => !!_).join(' ');
         } 
     },
     Query: {
         people: async (filter, projection, options, obj, args, { db }: { db: Db }) => 
-           await db.collection('people').find(filter, { ...options }).toArray()
+           await db.collection('people').find(filter, { ...options, projection: {} }).toArray()
     },
     Mutation: {
         updatePeople: async (filter, update, options: { }, projection, obj, args, { db }: { db: Db }) => {
@@ -40,8 +41,12 @@ export const resolvers = {
             return result.modifiedCount;
         },
         insertPerson: async (obj, args, { db }: { db: Db }) => {
-            const result = await db.collection('people').insert(args.input);
+            const result = await db.collection('people').insertOne(args.input);
             return JSON.stringify(result);
+        },
+        deletePeople: async (filter, obj, args, { db }: { db: Db }) => {
+            const result = await db.collection('people').deleteMany(filter)
+            return result.deletedCount;
         },
         clear: async (obj, args, { db }: { db: Db }) => {
             const result = await db.collection('people').deleteMany({})

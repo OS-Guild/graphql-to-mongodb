@@ -1,4 +1,10 @@
 # Change Log
+##### 1.6.2
+- `$nor`
+- `$not`
+- Refactor
+- More tests
+---
 ##### 1.6.1
 - Expose the types cache
 ---

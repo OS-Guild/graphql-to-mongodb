@@ -1,9 +1,10 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString } from 'graphql';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, isLeafType, GraphQLLeafType } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap, typesCache } from './common';
 import { warn } from './logger';
 
 const warnedIndependentResolvers = {};
 
+////////////// DEPRECATED ///////////////////////////////////////////
 const GetOprType = () => cache(typesCache, "Opr", () => new GraphQLEnumType({
     name: 'Opr',
     values: {
@@ -17,6 +18,7 @@ const GetOprType = () => cache(typesCache, "Opr", () => new GraphQLEnumType({
         NIN: { value: "$nin" }
     }
 }));
+/////////////////////////////////////////////////////////////////////
 
 const GetOprExistsType = () => cache(typesCache, "OprExists", () => new GraphQLEnumType({
     name: 'OprExists',
@@ -38,10 +40,12 @@ export function getGraphQLFilterType(type: GraphQLObjectType, ...excludedFields:
 function getOrAndFields(type: GraphQLObjectType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(type, getGraphQLObjectFilterType, ...excludedFields)();
-        warnIndependentResolveFields(type);
+
+        warnOfIndependentResolveFields(type);
 
         generatedFields['OR'] = { type: new GraphQLList(getGraphQLFilterType(type, ...excludedFields)) };
         generatedFields['AND'] = { type: new GraphQLList(getGraphQLFilterType(type, ...excludedFields)) };
+        generatedFields['NOR'] = { type: new GraphQLList(getGraphQLFilterType(type, ...excludedFields)) };
 
         return generatedFields;
     };
@@ -50,9 +54,8 @@ function getOrAndFields(type: GraphQLObjectType, ...excludedFields: string[]): (
 function getGraphQLObjectFilterType(
     type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>,
     ...excludedFields: string[]): GraphQLInputType {
-    if (type instanceof GraphQLScalarType ||
-        type instanceof GraphQLEnumType) {
-        return getGraphQLScalarFilterType(type);
+    if (isLeafType(type)) {
+        return getGraphQLLeafFilterType(type);
     }
 
     if (type instanceof GraphQLNonNull) {
@@ -73,7 +76,8 @@ function getGraphQLObjectFilterType(
 function getInputObjectTypeFields(type: GraphQLObjectType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(type, getGraphQLObjectFilterType, ...excludedFields)();
-        warnIndependentResolveFields(type);
+
+        warnOfIndependentResolveFields(type);
         
         generatedFields['opr'] = { type: GetOprExistsType() };
 
@@ -81,42 +85,52 @@ function getInputObjectTypeFields(type: GraphQLObjectType, ...excludedFields: st
     };
 }
 
-function getGraphQLScalarFilterType(scalarType: GraphQLScalarType | GraphQLEnumType): GraphQLInputObjectType {
-    const typeName = scalarType.toString() + "Filter";
+function getGraphQLLeafFilterType(leafType: GraphQLLeafType, not: boolean = false): GraphQLInputObjectType {
+    const typeName = leafType.toString() + (not ? `Not` : '') + `Filter`;
 
     return cache(typesCache, typeName, () => new GraphQLInputObjectType({
         name: typeName,
-        description: `Filter type for ${typeName} scalar`,
-        fields: getGraphQLScalarFilterTypeFields(scalarType)
+        description: `Filter type for ${(not ? `$not of ` : '')}${leafType} scalar`,
+        fields: getGraphQLScalarFilterTypeFields(leafType, not)
     }));
 }
 
-function getGraphQLScalarFilterTypeFields(scalarType: GraphQLScalarType | GraphQLEnumType): GraphQLInputFieldConfigMap {
+function getGraphQLScalarFilterTypeFields(scalarType: GraphQLLeafType, not: boolean): GraphQLInputFieldConfigMap {
     const fields = {
-        opr: { type: GetOprType(), description: 'DEPRECATED: Switched to the more intuitive operator fields' },
-        value: { type: scalarType, description: 'DEPRECATED: Switched to the more intuitive operator fields' },
-        values: { type: new GraphQLList(scalarType), description: 'DEPRECATED: Switched to the more intuitive operator fields' },
-        EQ: { type: scalarType },
-        GT: { type: scalarType },
-        GTE: { type: scalarType },
-        IN: { type: new GraphQLList(scalarType) },
-        LT: { type: scalarType },
-        LTE: { type: scalarType },
-        NEQ: { type: scalarType },
-        NIN: { type: new GraphQLList(scalarType) }
+        EQ: { type: scalarType, description: '$eq' },
+        GT: { type: scalarType, description: '$gt' },
+        GTE: { type: scalarType, description: '$gte' },
+        IN: { type: new GraphQLList(scalarType), description: '$in' },
+        LT: { type: scalarType, description: '$lt' },
+        LTE: { type: scalarType, description: '$lte' },
+        NE: { type: scalarType, description: '$ne' },
+        NIN: { type: new GraphQLList(scalarType), description: '$nin' }
     };
 
     if (scalarType.name === 'String') enhanceWithRegexFields(fields);
+
+    if (!not) { 
+        enhanceWithNotField(fields, scalarType);
+
+        fields['opr'] = { type: GetOprType(), description: 'DEPRECATED: Switched to the more intuitive operator fields' };
+        fields['value'] = { type: scalarType, description: 'DEPRECATED: Switched to the more intuitive operator fields' };
+        fields['values'] = { type: new GraphQLList(scalarType), description: 'DEPRECATED: Switched to the more intuitive operator fields' };
+        fields['NEQ'] = { type: scalarType, description: 'DEPRECATED: use NE' };
+    }
 
     return fields;
 }
 
 function enhanceWithRegexFields(fields: GraphQLInputFieldConfigMap): void {
-    fields.REGEX = { type: GraphQLString, description: 'Regex expression' };
-    fields.OPTIONS = { type: GraphQLString, description: 'Modifiers for the regex expression. Will be ignored on its own' };
+    fields.REGEX = { type: GraphQLString, description: '$regex' };
+    fields.OPTIONS = { type: GraphQLString, description: '$options. Modifiers for the $regex expression. Field is ignored on its own' };
 }
 
-function warnIndependentResolveFields(type: GraphQLObjectType): void {
+function enhanceWithNotField(fields: GraphQLInputFieldConfigMap, scalarType: GraphQLScalarType | GraphQLEnumType): void {
+    fields.NOT = { type: getGraphQLLeafFilterType(scalarType, true), description: '$not' };
+}
+
+function warnOfIndependentResolveFields(type: GraphQLObjectType): void {
     cache(warnedIndependentResolvers, type.toString(), () => {
         const fields =
             getTypeFields(type, (key, field) =>

@@ -1,5 +1,5 @@
 export { getGraphQLFilterType } from './src/graphQLFilterType';
-export { default as getMongoDbFilter } from './src/mongoDbFilter';
+export { getMongoDbFilter, MongoDbFilter } from './src/mongoDbFilter';
 export { getGraphQLUpdateType } from './src/graphQLUpdateType';
 export { getGraphQLInsertType } from './src/graphQLInsertType';
 export { getMongoDbUpdate } from './src/mongoDbUpdate';
@@ -7,8 +7,8 @@ export { validateUpdateArgs } from "./src/mongoDbUpdateValidation";
 export { default as GraphQLPaginationType } from './src/graphQLPaginationType';
 export { getGraphQLSortType, GraphQLSortType } from './src/graphQLSortType';
 export { default as getMongoDbSort } from './src/mongoDbSort';
-export { getMongoDbProjection } from './src/mongoDbProjection';
+export { getMongoDbProjection, MongoDbProjection } from './src/mongoDbProjection';
 export { getMongoDbQueryResolver, getGraphQLQueryArgs, QueryOptions } from './src/queryResolver';
 export { getMongoDbUpdateResolver, getGraphQLUpdateArgs, UpdateOptions } from './src/updateResolver';
-export { setLogger } from './src/logger';
+export { setLogger, getLogger } from './src/logger';
 export { getTypesCache, clearTypesCache } from './src/common';

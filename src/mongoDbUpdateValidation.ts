@@ -1,6 +1,6 @@
 import { UpdateArgs } from "./mongoDbUpdate";
 import { GraphQLObjectType, GraphQLType, GraphQLNonNull, GraphQLList, GraphQLFieldMap, GraphQLError } from "graphql";
-import { isNonNullType, getInnerType, flatten, isListType } from "./common";
+import { isNonNullField, getInnerType, flatten, isListField } from "./common";
 import { OVERWRITE } from "./graphQLUpdateType";
 
 export interface UpdateField {
@@ -48,7 +48,7 @@ export function validateNonNullableFieldsAssert(objects: object[], typeFields: G
     return Object
         .keys(typeFields)
         .map(key => ({ key, type: typeFields[key].type }))
-        .filter(field => isNonNullType(field.type))
+        .filter(field => isNonNullField(field.type))
         .reduce((agg, field) => {
             let fieldPath = [...path, field.key].join(".");
             const fieldValues = objects.map(_ => _[field.key]).filter(_ => _ !== undefined);
@@ -58,7 +58,7 @@ export function validateNonNullableFieldsAssert(objects: object[], typeFields: G
                 if (fieldValues.length === 0)
                     return [...agg, `Missing non-nullable field "${fieldPath}"`];
             }
-            if (isListType(field.type) && !validateNonNullListField(fieldValues, field.type)) {
+            if (isListField(field.type) && !validateNonNullListField(fieldValues, field.type)) {
                 return [...agg, `Non-nullable element of array "${fieldPath}" is set to null`];
             }
 
@@ -113,7 +113,7 @@ export function validateNonNullableFieldsTraverse(objects: object[], typeFields:
         const newPath = [...path, key];
         const values = objects.map(_ => _[key]).filter(_ => _);
 
-        if (isListType(type)) {
+        if (isListField(type)) {
             return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, ShouldAssert.True, newPath)))];
         } else {
             return [...agg, ...validateNonNullableFields(values, innerType, shouldAssert, newPath)];

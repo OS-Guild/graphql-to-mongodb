@@ -1,16 +1,16 @@
 import { getGraphQLFilterType } from './graphQLFilterType';
 import { getGraphQLUpdateType } from './graphQLUpdateType';
-import getMongoDbFilter from './mongoDbFilter';
-import { getMongoDbUpdate } from './mongoDbUpdate';
+import { getMongoDbFilter, MongoDbFilter } from './mongoDbFilter';
+import { getMongoDbUpdate, UpdateObj } from './mongoDbUpdate';
 import { validateUpdateArgs } from './mongoDbUpdateValidation';
 import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType, GraphQLInputObjectType } from 'graphql';
 import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
 
 export interface UpdateCallback<TSource, TContext> {
     (
-        filter: object,
-        update: object,
-        options: object,
+        filter: MongoDbFilter,
+        update: UpdateObj,
+        options: { upsert?: boolean } | undefined,
         projection: MongoDbProjection | undefined,
         source: TSource,
         args: { [argName: string]: any },

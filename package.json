@@ -1,7 +1,7 @@
 {
   "name": "graphql-to-mongodb",
-  "version": "1.6.1",
-  "description": "Allows for generic run-time generation of filter types for existing graphql types and parsing client requests to mongodb find queries",
+  "version": "1.6.2",
+  "description": "Generic run-time generation of input filter types for existing graphql types and parsing client requests to mongodb queries",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
