@@ -1,6 +1,4 @@
-import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType } from 'graphql'
-
-export const FICTIVE_SORT = "_FICTIVE_SORT";
+import { GraphQLList, GraphQLType, GraphQLObjectType, GraphQLNonNull, GraphQLArgument, GraphQLFieldResolver, FieldDefinitionNode, GraphQLNamedType, GraphQLInterfaceType } from 'graphql'
 
 export interface cacheCallback<T> {
     (key): T
@@ -60,8 +58,10 @@ export interface Field<TType extends GraphQLType,
     dependencies?: string[]
 }
 
+export type GraphQLFieldsType = GraphQLObjectType | GraphQLInterfaceType;
+
 export function getTypeFields<T extends GraphQLType>(
-    graphQLType: GraphQLObjectType,
+    graphQLType: GraphQLFieldsType,
     filter: FieldFilter = null,
     typeResolver: TypeResolver<T> = (type: T) => type,
     ...excludedFields: string[])
@@ -84,7 +84,7 @@ export function getTypeFields<T extends GraphQLType>(
     };
 }
 
-export function getUnresolvedFieldsTypes<T extends GraphQLType>(graphQLType: GraphQLObjectType, typeResolver: TypeResolver<T> = null, ...excludedFields: string[])
+export function getUnresolvedFieldsTypes<T extends GraphQLType>(graphQLType: GraphQLFieldsType, typeResolver: TypeResolver<T> = null, ...excludedFields: string[])
     : () => FieldMap<T> {
     return () => {
         const fields = getTypeFields(graphQLType, (key, field) => !field.resolve, typeResolver, ...excludedFields)();

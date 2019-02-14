@@ -1,5 +1,5 @@
 import { isType, GraphQLObjectType, isLeafType, GraphQLLeafType } from 'graphql';
-import { getTypeFields, getInnerType, isListField, addPrefixToProperties } from './common';
+import { getTypeFields, getInnerType, isListField, addPrefixToProperties, GraphQLFieldsType } from './common';
 import { warn, logOnError } from './logger';
 
 type GraphQLLeafOperators = 'EQ' | 'GT' | 'GTE' | 'IN' | 'LT' | 'LTE' | 'NE' | 'NEQ' | 'NEQ' | 'NIN' | 'REGEX' | 'OPTIONS' | 'NOT';
@@ -70,7 +70,7 @@ const operatorsMongoDbKeys: { [key in GraphQLOperators]: MongoDbOperators } = {
 const rootOperators: GraphQLRootOperators[] = ['OR', 'AND', 'NOR']
 
 
-export const getMongoDbFilter = logOnError((graphQLType: GraphQLObjectType, graphQLFilter: GraphQLFilter = {}): MongoDbFilter => {
+export const getMongoDbFilter = logOnError((graphQLType: GraphQLFieldsType, graphQLFilter: GraphQLFilter = {}): MongoDbFilter => {
     if (!isType(graphQLType)) throw 'First arg of getMongoDbFilter must be the base graphqlType to be parsed'
 
     const filter = parseMongoDbFilter(graphQLType, graphQLFilter as GraphQLObjectFilter, ...rootOperators) as MongoDbFilter;
@@ -84,7 +84,7 @@ export const getMongoDbFilter = logOnError((graphQLType: GraphQLObjectType, grap
     return filter;
 });
 
-function parseMongoDbFilter(type: GraphQLObjectType, graphQLFilter: GraphQLObjectFilter, ...excludedFields: string[]): MongoDbObjectFilter {
+function parseMongoDbFilter(type: GraphQLFieldsType, graphQLFilter: GraphQLObjectFilter, ...excludedFields: string[]): MongoDbObjectFilter {
     const typeFields = getTypeFields(type)();
 
     return Object.keys(graphQLFilter)

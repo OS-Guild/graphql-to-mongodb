@@ -1,5 +1,5 @@
-import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, isLeafType, GraphQLLeafType } from 'graphql';
-import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap, typesCache } from './common';
+import { GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLNonNull, GraphQLScalarType, GraphQLObjectType, GraphQLInputFieldConfigMap, GraphQLInputType, GraphQLString, isLeafType, GraphQLLeafType, GraphQLInterfaceType } from 'graphql';
+import { cache, setSuffix, getUnresolvedFieldsTypes, getTypeFields, FieldMap, typesCache, GraphQLFieldsType } from './common';
 import { warn } from './logger';
 
 const warnedIndependentResolvers = {};
@@ -28,7 +28,7 @@ const GetOprExistsType = () => cache(typesCache, "OprExists", () => new GraphQLE
     }
 }));
 
-export function getGraphQLFilterType(type: GraphQLObjectType, ...excludedFields: string[]): GraphQLInputObjectType {
+export function getGraphQLFilterType(type: GraphQLFieldsType, ...excludedFields: string[]): GraphQLInputObjectType {
     const filterTypeName = setSuffix(type.name, 'Type', 'FilterType');
 
     return cache(typesCache, filterTypeName, () => new GraphQLInputObjectType({
@@ -37,7 +37,7 @@ export function getGraphQLFilterType(type: GraphQLObjectType, ...excludedFields:
     }));
 }
 
-function getOrAndFields(type: GraphQLObjectType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
+function getOrAndFields(type: GraphQLFieldsType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(type, getGraphQLObjectFilterType, ...excludedFields)();
 
@@ -52,7 +52,7 @@ function getOrAndFields(type: GraphQLObjectType, ...excludedFields: string[]): (
 }
 
 function getGraphQLObjectFilterType(
-    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLObjectType | GraphQLList<any>,
+    type: GraphQLScalarType | GraphQLEnumType | GraphQLNonNull<any> | GraphQLInterfaceType | GraphQLObjectType | GraphQLList<any>,
     ...excludedFields: string[]): GraphQLInputType {
     if (isLeafType(type)) {
         return getGraphQLLeafFilterType(type);
@@ -73,7 +73,7 @@ function getGraphQLObjectFilterType(
     }));
 }
 
-function getInputObjectTypeFields(type: GraphQLObjectType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
+function getInputObjectTypeFields(type: GraphQLFieldsType, ...excludedFields: string[]): () => FieldMap<GraphQLInputType> {
     return () => {
         const generatedFields = getUnresolvedFieldsTypes(type, getGraphQLObjectFilterType, ...excludedFields)();
 
@@ -130,7 +130,7 @@ function enhanceWithNotField(fields: GraphQLInputFieldConfigMap, scalarType: Gra
     fields.NOT = { type: getGraphQLLeafFilterType(scalarType, true), description: '$not' };
 }
 
-function warnOfIndependentResolveFields(type: GraphQLObjectType): void {
+function warnOfIndependentResolveFields(type: GraphQLFieldsType): void {
     cache(warnedIndependentResolvers, type.toString(), () => {
         const fields =
             getTypeFields(type, (key, field) =>

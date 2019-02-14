@@ -191,14 +191,14 @@ describe("mongoDbUpdateValidation", () => {
             type: ObjectType,
             objects: [{ stringScalar: "x" }, { nonNullList: [] }],
             path: ["nested"],
-            expectedErrors: ["Missing non-nullable field \"nested.nonNullScalar\""]
+            expectedErrors: ["Missing non-nullable field \"nested._id\"", "Missing non-nullable field \"nested.nonNullScalar\""]
         }, {
             description: "Should concat multiple errors",
             type: ObjectType,
             objects: [{ stringScalar: "x" }, { nonNullList: null }],
             expectedErrors: ["Missing non-nullable field \"nonNullScalar\"", "Non-nullable field \"nonNullList\" is set to null"]
         }, {
-            description: "Should validate valid update args",
+            description: "Should validate valid update args, and ignore non-null root _id",
             type: ObjectType,
             objects: [{ stringScalar: "x", nonNullScalar: 'x' }, { nonNullList: [] }],
             expectedErrors: []

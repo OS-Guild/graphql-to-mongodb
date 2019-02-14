@@ -1,4 +1,8 @@
 # Change Log
+##### 1.6.3
+- GraphQLInterface support for filter type, including fragment projection
+- Correct non-null update validation to ignore _id in root
+- More tests
 ##### 1.6.2
 - `$nor`
 - `$not`

@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { clearTypesCache } from "../../src/common";
 import printInputType from "../utils/printInputType";
 import { ObjectType, CharactersEnum } from "../utils/types";
-import { GraphQLObjectType, GraphQLInputType, GraphQLInputObjectType, GraphQLInt, GraphQLString, GraphQLList, printType, GraphQLNonNull, GraphQLBoolean, GraphQLFloat } from "graphql";
+import { GraphQLObjectType, GraphQLInputType, GraphQLInputObjectType, GraphQLInt, GraphQLString, GraphQLList, printType, GraphQLNonNull, GraphQLBoolean, GraphQLFloat, GraphQLID } from "graphql";
 
 describe("graphQLUpdateType", () => {
     describe("getGraphQLUpdateType", () => {
@@ -93,6 +93,8 @@ describe("graphQLUpdateType", () => {
                         type: new GraphQLInputObjectType({
                             name: "ObjectSetOnInsertType",
                             fields: {
+                                _id: { type: GraphQLID },
+                                
                                 stringScalar: { type: GraphQLString },
                                 intScalar: { type: GraphQLInt },
                                 floatScalar: { type: GraphQLFloat },
@@ -116,6 +118,8 @@ describe("graphQLUpdateType", () => {
                         type: new GraphQLInputObjectType({
                             name: "ObjectSetType",
                             fields: {
+                                _id: { type: GraphQLID },
+
                                 stringScalar: { type: GraphQLString },
                                 intScalar: { type: GraphQLInt },
                                 floatScalar: { type: GraphQLFloat },
