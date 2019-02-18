@@ -226,8 +226,8 @@ describe("graphQLFilterType", () => {
                 } 
             });
 
-            const nestedObjectFilterType =  new GraphQLInputObjectType({
-                name: "NestedObjectFilterType",
+            const nestedInterfaceObjectFilterType =  new GraphQLInputObjectType({
+                name: "NestedInterfaceObjectFilterType",
                 fields: () => ({
                     stringScalar: { type: stringFilter },
                     intScalar: { type: intFilter },
@@ -249,6 +249,31 @@ describe("graphQLFilterType", () => {
                 })
             });
 
+            const nestedObjectFilterType =  new GraphQLInputObjectType({
+                name: "NestedObjectFilterType",
+                fields: () => ({
+                    stringScalar: { type: stringFilter },
+                    intScalar: { type: intFilter },
+                    floatScalar: { type: floatFilter },
+                    enumScalar: { type: charactersFilter },
+
+                    stringList: { type: stringFilter },
+                    intList: { type: intFilter },
+                    floatList: { type: floatFilter },
+                    enumList: { type: charactersFilter },
+
+                    nonNullScalar: { type: stringFilter },
+                    nonNullList: { type: stringFilter },
+                    listOfNonNulls: { type: stringFilter },
+
+                    recursive: { type: nestedObjectFilterType },
+
+                    typeSpecificScalar: { type: stringFilter },
+
+                    opr: { type: oprExistsType },
+                })
+            });
+
             const expectedType = new GraphQLInputObjectType({
                 name: "ObjectFilterType",
                 fields: () => ({
@@ -266,6 +291,7 @@ describe("graphQLFilterType", () => {
 
                     nested: { type: nestedObjectFilterType },
                     nestedList: { type: nestedObjectFilterType },
+                    nestedInterface: { type: nestedInterfaceObjectFilterType },
 
                     nonNullScalar: { type: stringFilter },
                     nonNullList: { type: stringFilter },
@@ -482,7 +508,9 @@ describe("graphQLFilterType", () => {
 
                     recursive: { type: nestedObjectFilterType },
 
-                    opr: { type: oprExistsType }
+                    typeSpecificScalar: { type: stringFilter },
+
+                    opr: { type: oprExistsType },
                 })
             });
 

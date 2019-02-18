@@ -5,7 +5,7 @@ import { ObjectType, InterfaceType } from "../utils/types";
 import { GraphQLInputObjectType, GraphQLString, GraphQLList, printType, GraphQLEnumType, GraphQLObjectType } from "graphql";
 import { getGraphQLSortType, FICTIVE_SORT_DESCRIPTION, FICTIVE_SORT } from "../../src/graphQLSortType";
 
-describe("graphQLSortType.spec", () => {
+describe("graphQLSortType", () => {
     describe("getGraphQLSortType", () => {
         beforeEach(clearTypesCache);
 
@@ -30,6 +30,22 @@ describe("graphQLSortType.spec", () => {
                     nonNullScalar: { type: sortTypeEnum },
 
                     recursive: { type: nestedSortType },
+
+                    typeSpecificScalar: { type: sortTypeEnum },
+                })
+            });
+
+            const nestedInterfaceSortType = new GraphQLInputObjectType({
+                name: "NestedInterfaceSortType",
+                fields: () => ({
+                    stringScalar: { type: sortTypeEnum },
+                    intScalar: { type: sortTypeEnum },
+                    floatScalar: { type: sortTypeEnum },
+                    enumScalar: { type: sortTypeEnum },
+
+                    nonNullScalar: { type: sortTypeEnum },
+
+                    recursive: { type: nestedSortType },
                 })
             });
 
@@ -44,6 +60,7 @@ describe("graphQLSortType.spec", () => {
                     enumScalar: { type: sortTypeEnum },
 
                     nested: { type: nestedSortType },
+                    nestedInterface: { type: nestedInterfaceSortType },
 
                     nonNullScalar: { type: sortTypeEnum },
                 })
@@ -67,7 +84,7 @@ describe("graphQLSortType.spec", () => {
                 }
             });
 
-            const nestedObjectSortType = new GraphQLInputObjectType({
+            const nestedSortType = new GraphQLInputObjectType({
                 name: "NestedSortType",
                 fields: () => ({
                     stringScalar: { type: sortTypeEnum },
@@ -77,7 +94,9 @@ describe("graphQLSortType.spec", () => {
 
                     nonNullScalar: { type: sortTypeEnum },
 
-                    recursive: { type: nestedObjectSortType },
+                    recursive: { type: nestedSortType },
+
+                    typeSpecificScalar: { type: sortTypeEnum },
                 })
             });
 
@@ -91,7 +110,7 @@ describe("graphQLSortType.spec", () => {
 
                     nonNullScalar: { type: sortTypeEnum },
 
-                    recursive: { type: nestedObjectSortType },
+                    recursive: { type: nestedSortType },
                 })
             });
 

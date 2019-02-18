@@ -9,6 +9,40 @@ export const CharactersEnum = new GraphQLEnumType({
     }
 });
 
+
+
+export const NestedInterfaceType = new GraphQLInterfaceType({
+    name: "NestedInterface",
+    fields: () => ({
+        stringScalar: { type: GraphQLString },
+        intScalar: { type: GraphQLInt },
+        floatScalar: { type: GraphQLFloat },
+        enumScalar: { type: CharactersEnum },
+
+        stringList: { type: new GraphQLList(GraphQLString) },
+        intList: { type: new GraphQLList(GraphQLInt) },
+        floatList: { type: new GraphQLList(GraphQLFloat) },
+        enumList: { type: new GraphQLList(CharactersEnum) },
+        
+        nonNullScalar: { type: new GraphQLNonNull(GraphQLString) },
+        nonNullList: { type: new GraphQLNonNull(new GraphQLList(GraphQLString)) },
+        listOfNonNulls: { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) },
+
+        recursive: { type: NestedType },
+
+        resolveScalar: {
+            type: GraphQLString,
+            resolve: obj => obj.stringScalar,
+            dependencies: ["stringScalar"]
+        },
+        resolveObject: {
+            type: NestedType,
+            resolve: obj => ({ stringScalar: obj.stringScalar }),
+            dependencies: ["stringScalar"]
+        },
+    })
+});
+
 export const NestedType = new GraphQLObjectType({
     name: "Nested",
     fields: () => ({
@@ -38,7 +72,10 @@ export const NestedType = new GraphQLObjectType({
             resolve: obj => ({ stringScalar: obj.stringScalar }),
             dependencies: ["stringScalar"]
         },
-    })
+        
+        typeSpecificScalar: { type: GraphQLString },
+    }),
+    interfaces: [NestedInterfaceType]
 });
 
 export const ObjectType = new GraphQLObjectType({
@@ -58,6 +95,7 @@ export const ObjectType = new GraphQLObjectType({
 
         nested: { type: NestedType },
         nestedList: { type: new GraphQLList(NestedType) },
+        nestedInterface: { type: NestedInterfaceType },
 
         nonNullScalar: { type: new GraphQLNonNull(GraphQLString) },
         nonNullList: { type: new GraphQLNonNull(new GraphQLList(GraphQLString)) },
@@ -72,38 +110,6 @@ export const ObjectType = new GraphQLObjectType({
             type: GraphQLString,
             resolve: obj => `${obj.nested.stringScalar} ${obj.nested.intScalar}`,
             dependencies: ["nested"]
-        },
-        resolveObject: {
-            type: NestedType,
-            resolve: obj => ({ stringScalar: obj.stringScalar }),
-            dependencies: ["stringScalar"]
-        },
-    })
-});
-
-export const NestedInterfaceType = new GraphQLInterfaceType({
-    name: "NestedInterface",
-    fields: () => ({
-        stringScalar: { type: GraphQLString },
-        intScalar: { type: GraphQLInt },
-        floatScalar: { type: GraphQLFloat },
-        enumScalar: { type: CharactersEnum },
-
-        stringList: { type: new GraphQLList(GraphQLString) },
-        intList: { type: new GraphQLList(GraphQLInt) },
-        floatList: { type: new GraphQLList(GraphQLFloat) },
-        enumList: { type: new GraphQLList(CharactersEnum) },
-        
-        nonNullScalar: { type: new GraphQLNonNull(GraphQLString) },
-        nonNullList: { type: new GraphQLNonNull(new GraphQLList(GraphQLString)) },
-        listOfNonNulls: { type: new GraphQLList(new GraphQLNonNull(GraphQLString)) },
-
-        recursive: { type: NestedType },
-
-        resolveScalar: {
-            type: GraphQLString,
-            resolve: obj => obj.stringScalar,
-            dependencies: ["stringScalar"]
         },
         resolveObject: {
             type: NestedType,

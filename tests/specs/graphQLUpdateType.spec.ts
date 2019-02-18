@@ -3,7 +3,7 @@ import { expect } from "chai";
 import { clearTypesCache } from "../../src/common";
 import printInputType from "../utils/printInputType";
 import { ObjectType, CharactersEnum } from "../utils/types";
-import { GraphQLObjectType, GraphQLInputType, GraphQLInputObjectType, GraphQLInt, GraphQLString, GraphQLList, printType, GraphQLNonNull, GraphQLBoolean, GraphQLFloat, GraphQLID } from "graphql";
+import { GraphQLObjectType, GraphQLInputType, GraphQLInputObjectType, GraphQLInt, GraphQLString, GraphQLList, printType, GraphQLNonNull, GraphQLBoolean, GraphQLFloat, GraphQLID, GraphQLOutputType } from "graphql";
 
 describe("graphQLUpdateType", () => {
     describe("getGraphQLUpdateType", () => {
@@ -28,7 +28,9 @@ describe("graphQLUpdateType", () => {
                     nonNullList: { type: new GraphQLList(GraphQLString) },
                     listOfNonNulls: { type: new GraphQLList(GraphQLString) },
 
-                    recursive: { type: nestedSetOnInsertType }
+                    recursive: { type: nestedSetOnInsertType },
+
+                    typeSpecificScalar: { type: GraphQLString },
                 })
             })
 
@@ -51,6 +53,8 @@ describe("graphQLUpdateType", () => {
 
                     recursive: { type: nestedSetObjectType },
 
+                    typeSpecificScalar: { type: GraphQLString },
+
                     [OVERWRITE]: { type: GraphQLBoolean, description: OVERWRITE_DESCRIPTION }
                 })
             })
@@ -72,7 +76,9 @@ describe("graphQLUpdateType", () => {
                     nonNullList: { type: new GraphQLList(GraphQLString) },
                     listOfNonNulls: { type: new GraphQLList(GraphQLString) },
 
-                    recursive: { type: nestedSetListObjectType }
+                    recursive: { type: nestedSetListObjectType },
+
+                    typeSpecificScalar: { type: GraphQLString },
                 })
             })
 
@@ -153,8 +159,10 @@ describe("graphQLUpdateType", () => {
                 }
             })
 
+            const type = excludeFields(ObjectType, {}, "nestedInterface")
+
             // Act
-            const updateType = getGraphQLUpdateType(ObjectType);
+            const updateType = getGraphQLUpdateType(type);
 
             // Assert
             expect(printType(updateType)).to.eql(printType(expectedType), "Base type should be correct");
@@ -417,3 +425,49 @@ describe("graphQLUpdateType", () => {
         }));
     }));
 });
+
+const excludeFields = (graphQLObjectType: GraphQLObjectType, cach: { [key: string]: GraphQLObjectType }, ...excludedFields: string[]) => {
+    const getType = (type: GraphQLOutputType) => {
+        if (type instanceof GraphQLList) {
+            return new GraphQLList(getType(type.ofType));
+        }
+        if (type instanceof GraphQLNonNull) {
+            return new GraphQLNonNull(getType(type.ofType));
+        }
+        if (type instanceof GraphQLObjectType) {
+            return excludeFields(type, cach, ...excludedFields);
+        }
+        return type;
+    }
+
+    if (!!cach[graphQLObjectType.name]) {
+        return cach[graphQLObjectType.name];
+    }
+
+    cach[graphQLObjectType.name] = new GraphQLObjectType({
+        name: graphQLObjectType.name,
+        fields: () => {
+            const fields = graphQLObjectType.getFields();
+
+            return Object.keys(fields).reduce((agg, key) => {
+                if (excludedFields.includes(key)) {
+                    return agg;
+                }
+
+                const field = fields[key];
+                const type = getType(field.type)
+
+                return {
+                    ...agg,
+                    [key]: {
+                        resolve: field.resolve,
+                        type
+                    }
+                }
+            }, {}); 
+        }
+    });
+
+    return cach[graphQLObjectType.name];
+}
+

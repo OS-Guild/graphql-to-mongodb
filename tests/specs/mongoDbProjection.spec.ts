@@ -113,6 +113,23 @@ describe("mongoDbProjection", () => {
                     "nested.intScalar": 1
                 }
             }, {
+                description: "Should create projection for a request with inline fragments",
+                query: `
+                query {
+                    test {
+                        nestedInterface {
+                            stringScalar
+                            ... on Nested {
+                                typeSpecificScalar
+                            }
+                        }
+                    }
+                }`,
+                expectedProjection: {
+                    "nestedInterface.stringScalar": 1,
+                    "nestedInterface.typeSpecificScalar": 1
+                }
+            }, {
                 description: "Should create projection for a request",
                 query:  `
                 query {
@@ -130,6 +147,11 @@ describe("mongoDbProjection", () => {
                                 recursive {
                                     intList
                                 }
+                            }
+                        }
+                        nestedInterface {
+                            ... on Nested {
+                                typeSpecificScalar
                             }
                         }
                         resolveCommonDependencies
@@ -152,6 +174,7 @@ describe("mongoDbProjection", () => {
                     "nestedList.enumList": 1,
                     "nestedList.recursive.stringList": 1,
                     "nestedList.recursive.recursive.intList": 1,
+                    "nestedInterface.typeSpecificScalar": 1
                 }
             }
         ];
