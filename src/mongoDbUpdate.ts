@@ -75,11 +75,11 @@ export function getMongoDbSet(set: object, setOverwrite: SetOverwrite): SetObj {
         const childOverwrite = getOverwrite(setOverwrite, value[OVERWRITE]);
         const child = getMongoDbSet(value, childOverwrite);
 
-        if (childOverwrite === SetOverwrite.True) {
-            return { ...agg, [key]: child };
+        if (childOverwrite === SetOverwrite.False) {
+            return { ...agg, ...addPrefixToProperties(child, `${key}.`) };
         }
 
-        return { ...agg, ...addPrefixToProperties(child, `${key}.`) };
+        return { ...agg, [key]: child };
     }, {});
 }
 
