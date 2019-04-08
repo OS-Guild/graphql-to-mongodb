@@ -1,167 +1,90 @@
-import { getTypeFields, getInnerType, cache, flatten, addPrefixToProperties } from './common';
-import { isType, FieldNode, GraphQLObjectType, GraphQLResolveInfo, SelectionNode, FragmentSpreadNode } from 'graphql';
+import { getInnerType, flatten, addPrefixToProperties, GraphQLFieldsType } from './common';
+import { isType, GraphQLResolveInfo, SelectionNode, FragmentSpreadNode } from 'graphql';
 import { logOnError } from './logger';
 
 export interface MongoDbProjection {
     [key: string]: 1
 };
 
-export interface ProjectionField {
-    [key: string]: ProjectionField | 1
-};
-
-interface FieldGraph {
-    [key: string]: FieldGraph[] | 1
-};
-
-interface FragmentDictionary {
-    [key: string]: FieldGraph[]
-};
-
-export const getMongoDbProjection = logOnError((info: GraphQLResolveInfo, graphQLType: GraphQLObjectType, ...excludedFields: string[]): MongoDbProjection => {
+export const getMongoDbProjection = logOnError((info: GraphQLResolveInfo, graphQLFieldsType: GraphQLFieldsType, ...excludedFields: string[]): MongoDbProjection => {
     if (!Object.keys(info).includes('fieldNodes')) throw 'First argument of "getMongoDbProjection" must be a GraphQLResolveInfo';
-    if (!isType(graphQLType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
+    if (!isType(graphQLFieldsType)) throw 'Second argument of "getMongoDbProjection" must be a GraphQLType';
 
-    const requestedFields = getRequestedFields(info);
+    const nodes = flatten(info.fieldNodes.map(_ => [..._.selectionSet.selections]));
 
-    const projection = getProjection(requestedFields, graphQLType, ...excludedFields);
+    const projection = getSelectedProjection(nodes, graphQLFieldsType, { info, fragments: {} });
 
-    const resolveFieldsDependencies = getResolveFieldsDependencies(requestedFields, graphQLType);
-
-    return mergeProjectionAndResolveDependencies(projection, resolveFieldsDependencies);
+    return omitRedundantProjection(projection);
 });
 
-export function getRequestedFields(info: GraphQLResolveInfo): ProjectionField {
-    const selections = flatten(info.fieldNodes.map(_ => _.selectionSet.selections));
-    const simplifiedNodes = simplifyNodes({ selections: selections }, info);
-    return mergeNodes(simplifiedNodes);
-}
+function getSelectedProjection(
+    selectionNodes: SelectionNode[], 
+    graphQLFieldsType: GraphQLFieldsType, 
+    extra: { info: GraphQLResolveInfo, fragments: { [key: string]: MongoDbProjection } }, 
+    ...excludedFields: string[]): MongoDbProjection {
+    const fields = graphQLFieldsType.getFields()
 
-function simplifyNodes(selectionSetNode: { selections: SelectionNode[] }, info: GraphQLResolveInfo, dictionary: FragmentDictionary = {}): FieldGraph[] {
-    const fieldGraphs: FieldGraph[] = [];
-    const fieldGraph: FieldGraph = {};
-    fieldGraphs.push(fieldGraph);
+    return selectionNodes.reduce((projection, node) => {
+        if (node.kind === 'Field') {
+            if (node.name.value === '__typename' || excludedFields.includes(node.name.value)) return projection;
 
-    selectionSetNode.selections.forEach(selectionNode => {
-        if (selectionNode.kind === 'FragmentSpread') {
-            const fragmentSpreadNode = selectionNode as FragmentSpreadNode;
-            const fragment = buildFragment(fragmentSpreadNode.name.value, info, dictionary);
-            fragment.forEach(_ => fieldGraphs.push(_));
-        } else if (selectionNode.kind === 'Field') {
-            const fieldNode = selectionNode as FieldNode;
-            const fieldName = fieldNode.name.value;
-            const fieldGraphValue = fieldGraph[fieldName];
-            if (fieldGraphValue !== 1) {
-                if (!fieldNode.selectionSet) {
-                    fieldGraph[fieldName] = 1;
-                } else {
-                    const simplifiedNodes = simplifyNodes(fieldNode.selectionSet, info, dictionary);
-                    fieldGraph[fieldName] = (fieldGraphValue || []).concat(simplifiedNodes);
-                }
+            const field = fields[node.name.value];
+
+            if (!!field.resolve)  {
+                const dependencies: string[] = field["dependencies"] || [];
+                const dependenciesProjection = dependencies.reduce((agg, dependency) => ({ ...agg, [dependency]: 1 }), {});
+                return {
+                    ...projection,
+                    ...dependenciesProjection
+                };
             }
+
+            if (!node.selectionSet) return {
+                ...projection,
+                [node.name.value]: 1
+            };
+
+            const nested = getSelectedProjection([...node.selectionSet.selections], getInnerType(field.type) as GraphQLFieldsType, extra);
+
+            return {
+                ...projection,
+                ...addPrefixToProperties(nested, `${node.name.value}.`)
+            };
+        } else if (node.kind === 'InlineFragment') {
+            const type = extra.info.schema.getType(node.typeCondition.name.value);
+            return {
+                ...projection,
+                ...getSelectedProjection([...node.selectionSet.selections], type as GraphQLFieldsType, extra, ...excludedFields)
+            };
+        } else if (node.kind === 'FragmentSpread') {
+            return {
+                ...projection,
+                ...getFragmentProjection(node, graphQLFieldsType, extra)
+            };
         }
-    });
-
-    return fieldGraphs;
-}
-
-function buildFragment(fragmentName: string, info: GraphQLResolveInfo, dictionary: FragmentDictionary): FieldGraph[] {
-    return cache(dictionary, fragmentName, (): FieldGraph[] => {
-        const fragmentDescription = info.fragments[fragmentName];
-        return simplifyNodes(fragmentDescription.selectionSet, info, dictionary);
-    });
-}
-
-function mergeNodes(fieldGraphs: FieldGraph[]): ProjectionField {
-    const mergedGraph: FieldGraph = {};
-
-    fieldGraphs.forEach(fieldGraph => Object.keys(fieldGraph).forEach(fieldName => {
-        const mergedField = mergedGraph[fieldName];
-        if (mergedField !== 1) {
-            const fieldValue = fieldGraph[fieldName];
-            if (fieldValue === 1) {
-                mergedGraph[fieldName] = 1;
-            } else {
-                mergedGraph[fieldName] = (mergedField || []).concat(fieldValue);
-            }
-        }
-    }));
-
-    return Object.keys(mergedGraph).reduce((agg, fieldName) => {
-        const fieldValue = mergedGraph[fieldName];
-        return { ...agg, [fieldName]: fieldValue === 1 ? 1 : mergeNodes(fieldValue) };
     }, {});
 }
 
-export function getProjection(fieldNode: ProjectionField, graphQLType: GraphQLObjectType, ...excludedFields: string[]): MongoDbProjection {
-    const typeFields = getTypeFields(graphQLType)();
-
-    return Object.assign({}, ...Object.keys(fieldNode)
-        .filter(key => key !== "__typename"
-            && !excludedFields.includes(key)
-            && !typeFields[key].resolve)
-        .map(key => {
-            const field = fieldNode[key];
-
-            if (field === 1) {
-                return { [key]: 1 };
-            }
-
-            const child = getProjection(field, getInnerType(typeFields[key].type) as GraphQLObjectType);
-
-            return addPrefixToProperties(child, `${key}.`);
-        }));
+function getFragmentProjection(
+    fragmentSpreadNode: FragmentSpreadNode, 
+    graphQLFieldsType: GraphQLFieldsType, 
+    extra: { info: GraphQLResolveInfo, fragments: { [key: string]: MongoDbProjection } }): MongoDbProjection {
+    const fragmentName = fragmentSpreadNode.name.value;
+    if (extra.fragments[fragmentName]) return extra.fragments[fragmentName];
+    const fragmentNode = extra.info.fragments[fragmentName];
+    extra.fragments[fragmentName] = getSelectedProjection([...fragmentNode.selectionSet.selections], graphQLFieldsType, extra);
+    return extra.fragments[fragmentName];
 }
 
-export function getResolveFieldsDependencies(fieldNode: ProjectionField, graphQLType: GraphQLObjectType): string[] {
-    const typeFields = getTypeFields(graphQLType)();
-
-    return Object.keys(fieldNode)
-        .filter(key => key !== "__typename")
-        .reduce((agg, key) => {
-            const field = fieldNode[key];
-            const typeField = typeFields[key];
-
-            if (typeField.resolve) {
-                if (Array.isArray(typeField.dependencies)) {
-                    return [...agg, ...typeField.dependencies];
-                }
-
-                return agg;
-            }
-
-            if (field === 1) {
-                return agg;
-            }
-
-            return [...agg, ...getResolveFieldsDependencies(field, getInnerType(typeField.type) as GraphQLObjectType).map(f => key + '.' + f)];
-        }, []);
-}
-
-export function mergeProjectionAndResolveDependencies(projection: MongoDbProjection, resolveDependencies: string[]): MongoDbProjection {
-    const newProjection = { ...projection };
-
-    for (var i = 0; i < resolveDependencies.length; i++) {
-        const dependency = resolveDependencies[i];
-
-        const projectionKeys = Object.keys(newProjection);
-
-        if (projectionKeys.includes(dependency)) {
-            continue;
+function omitRedundantProjection(projection: MongoDbProjection) {
+    return Object.keys(projection).reduce((proj, key) => {
+        if (Object.keys(projection).some(otherKey => 
+            otherKey !== key && new RegExp(`^${otherKey}[.]`).test(key))) {
+            return proj;
         }
-
-        if (projectionKeys.some(key => new RegExp(`^${key}[.]`).test(dependency))) {
-            continue;
-        }
-
-        const regex = new RegExp(`^${dependency}[.]`)
-
-        projectionKeys
-            .filter(key => regex.test(key))
-            .forEach(key => delete newProjection[key]);
-
-        newProjection[dependency] = 1;
-    }
-
-    return newProjection;
+        return {
+            ...proj,
+            [key]: 1
+        };
+    }, {});
 }

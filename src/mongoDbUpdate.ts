@@ -15,9 +15,17 @@ export interface UpdateArgs {
 }
 
 export interface UpdateObj {
-    $setOnInsert?: object
-    $set?: object
+    $setOnInsert?: SetOnInsertObj
+    $set?: SetObj
     $inc?: IncObj
+}
+
+export interface SetOnInsertObj {
+    [key: string]: SetOnInsertObj | any
+}
+
+export interface SetObj {
+    [key: string]: SetObj | any
 }
 
 export interface IncObj {
@@ -50,7 +58,7 @@ export const getMongoDbUpdate = logOnError((update: UpdateArgs, overwrite: boole
     return updateParams;
 });
 
-export function getMongoDbSet(set: object, setOverwrite: SetOverwrite): object {
+export function getMongoDbSet(set: object, setOverwrite: SetOverwrite): SetObj {
     return Object.keys(set).filter(_ => _ !== OVERWRITE).reduce((agg, key) => {
         const value = set[key];
 

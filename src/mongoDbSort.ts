@@ -1,4 +1,5 @@
-import { FICTIVE_SORT } from "./common";
+import { addPrefixToProperties } from "./common";
+import { FICTIVE_SORT } from "./graphQLSortType";
 
 export type SortDirection = 1 | -1
 
@@ -10,19 +11,20 @@ export interface MongoDbSort {
     [key: string]: SortDirection;
 };
 
-function getMongoDbSort(sort: SortArg, path: string[] = []): MongoDbSort {
-    return Object.assign({}, ...Object.keys(sort)
+function getMongoDbSort(sort: SortArg): MongoDbSort {
+    return Object.keys(sort)
         .filter(key => key != FICTIVE_SORT)
-        .map(key => {
+        .reduce((agg, key) => {
             const value = sort[key];
-            const newPath = [...path, key];
 
             if (typeof value === 'number') {
-                return { [newPath.join(".")]: value }
+                return { ...agg, [key]: value }
             }
 
-            return getMongoDbSort(value as SortArg, newPath);
-        }));
+            const nested = getMongoDbSort(value as SortArg);
+
+            return { ...agg, ...addPrefixToProperties(nested, `${key}.`) }
+        }, {});
 }
 
 export default getMongoDbSort;

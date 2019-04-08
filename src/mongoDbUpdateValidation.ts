@@ -48,7 +48,7 @@ export function validateNonNullableFieldsAssert(objects: object[], typeFields: G
     return Object
         .keys(typeFields)
         .map(key => ({ key, type: typeFields[key].type }))
-        .filter(field => isNonNullField(field.type))
+        .filter(field => isNonNullField(field.type) && (field.key !== '_id' || path.length > 0))
         .reduce((agg, field) => {
             let fieldPath = [...path, field.key].join(".");
             const fieldValues = objects.map(_ => _[field.key]).filter(_ => _ !== undefined);

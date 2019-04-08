@@ -53,7 +53,7 @@ export function getGraphQLUpdateArgs(graphQLType: GraphQLObjectType): { [key: st
     update: { type: GraphQLNonNull<GraphQLInputObjectType> }
 } {
     return {
-        filter: { type: new GraphQLNonNull(getGraphQLFilterType(graphQLType)) },
-        update: { type: new GraphQLNonNull(getGraphQLUpdateType(graphQLType)) }
+        filter: { type: new GraphQLNonNull(getGraphQLFilterType(graphQLType)) as GraphQLNonNull<GraphQLInputObjectType> },
+        update: { type: new GraphQLNonNull(getGraphQLUpdateType(graphQLType)) as GraphQLNonNull<GraphQLInputObjectType> }
     };
 }

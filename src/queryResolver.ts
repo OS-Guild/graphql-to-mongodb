@@ -5,6 +5,7 @@ import { getGraphQLSortType } from './graphQLSortType';
 import GraphQLPaginationType from './graphQLPaginationType';
 import getMongoDbSort, { MongoDbSort } from "./mongoDbSort";
 import { isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType, GraphQLInputObjectType } from 'graphql';
+import { GraphQLFieldsType } from './common';
 
 export interface QueryCallback<TSource, TContext> {
     (
@@ -34,7 +35,7 @@ const defaultOptions: Required<QueryOptions> = {
 };
 
 export function getMongoDbQueryResolver<TSource, TContext>(
-    graphQLType: GraphQLObjectType,
+    graphQLType: GraphQLFieldsType,
     queryCallback: QueryCallback<TSource, TContext>,
     queryOptions?: QueryOptions): GraphQLFieldResolver<TSource, TContext> {
     if (!isType(graphQLType)) throw 'getMongoDbQueryResolver must recieve a graphql type';
@@ -53,7 +54,7 @@ export function getMongoDbQueryResolver<TSource, TContext>(
     }
 }
 
-export function getGraphQLQueryArgs(graphQLType: GraphQLObjectType): { [key: string]: { type: GraphQLInputObjectType } } & { 
+export function getGraphQLQueryArgs(graphQLType: GraphQLFieldsType): { [key: string]: { type: GraphQLInputObjectType } } & { 
     filter: { type: GraphQLInputObjectType },
     sort: { type: GraphQLInputObjectType } ,
     pagination: { type: GraphQLInputObjectType } 
