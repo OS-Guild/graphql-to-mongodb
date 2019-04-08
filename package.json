@@ -21,7 +21,7 @@
   "homepage": "https://github.com/Soluto/graphql-to-mongodb#readme",
   "devDependencies": {
     "@types/chai": "^4.1.4",
-    "@types/graphql": "^0.12.4",
+    "@types/graphql": "^14.2.0",
     "@types/mocha": "^5.2.5",
     "chai": "^4.1.2",
     "graphql": "^0.13.2",
@@ -30,6 +30,6 @@
     "typescript": "^3.0.3"
   },
   "peerDependencies": {
-    "graphql": ">=0.10"
+    "graphql": "^14.2.1"
   }
 }
