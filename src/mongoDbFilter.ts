@@ -124,7 +124,7 @@ function parseMongoDbFilter(type: GraphQLFieldsType, graphQLFilter: GraphQLObjec
 }
 
 function parseMongoExistsFilter(exists: 'exists' | 'not_exists'): { $exists: boolean } {
-    return { $exists: exists === 'exists' ? true : false };
+    return { $exists: typeof exists === 'string' && exists.trim().toLowerCase() === 'exists' };
 }
 
 function parseMongoDbLeafFilter(graphQLLeafFilter: GraphQLLeafFilter, not: boolean = false): MongoDbLeafFilter {
