@@ -27,6 +27,15 @@ export default function <TContext>(config: IExecutableSchemaDefinition<TContext>
         .join("\n");
 
     const typesSdl = gql(typesSdlRaw);
+    
+    // fetch OprExists as an Enum type
+    const oprExists = typesCache.OprExists as GraphQLEnumType;
+
+    // define a resolver for OprExists to return our custom values instead of enum key
+    config.resolvers['OprExists'] = oprExists.getValues().reduce((resolver, value) => {
+        resolver[value.name] = value.value;
+        return resolver;
+    }, {});
 
     MongoDirectivesContext.stage = "Second";
     const stageTwoSchema = makeExecutableSchema({
