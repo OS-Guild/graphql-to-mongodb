@@ -2,8 +2,8 @@ import { isType, GraphQLObjectType, isLeafType, GraphQLLeafType } from 'graphql'
 import { getTypeFields, getInnerType, isListField, addPrefixToProperties, GraphQLFieldsType } from './common';
 import { warn, logOnError } from './logger';
 
-type GraphQLLeafOperators = 'EQ' | 'GT' | 'GTE' | 'IN' | 'LT' | 'LTE' | 'NE' | 'NEQ' | 'NEQ' | 'NIN' | 'REGEX' | 'OPTIONS' | 'NOT';
-type MongoDbLeafOperators = '$eq' | '$gt' | '$gte' | '$in' | '$lt' | '$lte' | '$ne' | '$neq' | '$nin' | '$regex' | '$options' | '$not';
+type GraphQLLeafOperators = 'EQ' | 'GT' | 'GTE' | 'IN' | 'ALL' | 'LT' | 'LTE' | 'NE' | 'NEQ' | 'NEQ' | 'NIN' | 'REGEX' | 'OPTIONS' | 'NOT';
+type MongoDbLeafOperators = '$eq' | '$gt' | '$gte' | '$in' | '$all' | '$lt' | '$lte' | '$ne' | '$neq' | '$nin' | '$regex' | '$options' | '$not';
 type GraphQLRootOperators = 'OR' | 'AND' | 'NOR';
 export type MongoDbRootOperators = '$or' | '$and' | '$nor';
 type GraphQLOperators = GraphQLLeafOperators | GraphQLRootOperators;
@@ -54,6 +54,7 @@ const operatorsMongoDbKeys: { [key in GraphQLOperators]: MongoDbOperators } = {
     GT: '$gt',
     GTE: '$gte',
     IN: '$in',
+    ALL: '$all',
     LT: '$lt',
     LTE: '$lte',
     NE: '$ne',
@@ -183,7 +184,7 @@ function parseMongoDbScalarFilterOpr(opr: MongoDbLeafOperators, graphQLFilter: G
         dperecatedMessageSent = true;
     }
 
-    if (["$in", "$nin"].includes(opr)) {
+    if (["$in", "$nin", "$all"].includes(opr)) {
         if (graphQLFilter['values']) {
             return { [opr]: graphQLFilter['values'] };
         }
