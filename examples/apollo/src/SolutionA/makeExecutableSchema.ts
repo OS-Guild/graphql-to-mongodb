@@ -15,7 +15,6 @@ import { clearTypesCache, getTypesCache, GraphQLPaginationType, GraphQLSortType 
 import { MongoDirectivesContext, types as directiveTypes, visitors } from "./directives";
 
 export default function <TContext>(config: IExecutableSchemaDefinition<TContext>): GraphQLSchema {
-    config = config || {} as IExecutableSchemaDefinition<TContext>;
     config.resolvers = config.resolvers || {};
 
     clearTypesCache();
