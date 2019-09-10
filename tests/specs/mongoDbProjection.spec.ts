@@ -2,10 +2,11 @@ import { getMongoDbProjection } from "../../src/mongoDbProjection";
 import { ObjectType } from "../utils/types";
 import fieldResolve from "../utils/fieldResolve";
 import { expect } from "chai";
+import { GraphQLField } from "graphql";
 
 describe("mongoDbProjection", () => {
     describe("getMongoDbProjection", () => {
-        const tests: { description: string, query: string, expectedProjection: any }[] = [
+        const tests: { description: string, query: string, expectedProjection: any, exckudedField?: string[], isResolvedField?: (field: GraphQLField<any, any>) => boolean }[] = [
             {
                 description: "Should create projection for a simple request",
                 query: `
@@ -33,7 +34,7 @@ describe("mongoDbProjection", () => {
                 }
             }, {
                 description: "Should create projection for a nested request",
-                query:  `
+                query: `
                 query {
                     test {
                         nested {
@@ -130,8 +131,21 @@ describe("mongoDbProjection", () => {
                     "nestedInterface.typeSpecificScalar": 1
                 }
             }, {
+                description: "Should not project a supposedly resolved field",
+                query: `
+                query {
+                    test {
+                        stringScalar
+                        intScalar
+                    }
+                }`,
+                expectedProjection: {
+                    "intScalar": 1
+                },
+                isResolvedField: field => !!field.resolve || field.name === "stringScalar"
+            }, {
                 description: "Should create projection for a request",
-                query:  `
+                query: `
                 query {
                     test {
                         stringScalar
@@ -185,7 +199,7 @@ describe("mongoDbProjection", () => {
             const { info } = fieldResolve(ObjectType, query);
 
             // Act
-            const projection = getMongoDbProjection(info, ObjectType);
+            const projection = getMongoDbProjection(info, ObjectType, { isResolvedField: test.isResolvedField, excludedFields: test.exckudedField || [] });
 
             // Assert
             expect(projection).to.deep.equal(test.expectedProjection, "should produce a correct projection")

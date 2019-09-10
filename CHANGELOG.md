@@ -1,4 +1,6 @@
 # Change Log
+##### 1.6.5
+- Allow override of the is-resolved-field logic in projection and update validation
 ##### 1.6.4
 - `$all`
 ##### 1.6.3

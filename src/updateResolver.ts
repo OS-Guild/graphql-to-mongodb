@@ -4,7 +4,7 @@ import { getMongoDbFilter, MongoDbFilter } from './mongoDbFilter';
 import { getMongoDbUpdate, UpdateObj } from './mongoDbUpdate';
 import { validateUpdateArgs } from './mongoDbUpdateValidation';
 import { GraphQLNonNull, isType, GraphQLResolveInfo, GraphQLFieldResolver, GraphQLObjectType, GraphQLInputObjectType } from 'graphql';
-import { getMongoDbProjection, MongoDbProjection } from './mongoDbProjection';
+import { getMongoDbProjection, MongoDbProjection, GetMongoDbProjectionOptions } from './mongoDbProjection';
 
 export interface UpdateCallback<TSource, TContext> {
     (
@@ -19,16 +19,19 @@ export interface UpdateCallback<TSource, TContext> {
     ): Promise<any>
 };
 
-export interface UpdateOptions {
+
+export type UpdateOptions = {
     differentOutputType?: boolean;
     validateUpdateArgs?: boolean;
     overwrite?: boolean;
-};
+} & Partial<GetMongoDbProjectionOptions>;
 
 const defaultOptions: Required<UpdateOptions> = {
     differentOutputType: false,
     validateUpdateArgs: false,
-    overwrite: false
+    overwrite: false,
+    excludedFields: [],
+    isResolvedField: undefined
 };
 
 export function getMongoDbUpdateResolver<TSource, TContext>(
@@ -37,13 +40,13 @@ export function getMongoDbUpdateResolver<TSource, TContext>(
     updateOptions?: UpdateOptions): GraphQLFieldResolver<TSource, TContext> {
     if (!isType(graphQLType)) throw 'getMongoDbUpdateResolver must recieve a graphql type';
     if (typeof updateCallback !== 'function') throw 'getMongoDbUpdateResolver must recieve an updateCallback';
-    const requiredUpdateOptions: Required<UpdateOptions> = { ...defaultOptions, ...updateOptions };
+    const requiredUpdateOptions = { ...defaultOptions, ...updateOptions };
 
     return async (source: TSource, args: { [argName: string]: any }, context: TContext, info: GraphQLResolveInfo): Promise<any> => {
         const filter = getMongoDbFilter(graphQLType, args.filter);
-        if (requiredUpdateOptions.validateUpdateArgs) validateUpdateArgs(args.update, graphQLType, requiredUpdateOptions.overwrite);
+        if (requiredUpdateOptions.validateUpdateArgs) validateUpdateArgs(args.update, graphQLType, requiredUpdateOptions);
         const mongoUpdate = getMongoDbUpdate(args.update, requiredUpdateOptions.overwrite);
-        const projection = requiredUpdateOptions.differentOutputType ? undefined : getMongoDbProjection(info, graphQLType);
+        const projection = requiredUpdateOptions.differentOutputType ? undefined : getMongoDbProjection(info, graphQLType, requiredUpdateOptions);
         return await updateCallback(filter, mongoUpdate.update, mongoUpdate.options, projection, source, args, context, info);
     };
 }
