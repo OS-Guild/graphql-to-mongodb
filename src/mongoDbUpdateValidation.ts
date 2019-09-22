@@ -1,5 +1,5 @@
 import { UpdateArgs } from "./mongoDbUpdate";
-import { GraphQLObjectType, GraphQLType, GraphQLNonNull, GraphQLList, GraphQLFieldMap, GraphQLError } from "graphql";
+import { GraphQLObjectType, GraphQLType, GraphQLNonNull, GraphQLList, GraphQLFieldMap, GraphQLField, GraphQLError } from "graphql";
 import { isNonNullField, getInnerType, flatten, isListField } from "./common";
 import { OVERWRITE } from "./graphQLUpdateType";
 
@@ -13,27 +13,44 @@ export enum ShouldAssert {
     False
 }
 
-export function validateUpdateArgs(updateArgs: UpdateArgs, graphQLType: GraphQLObjectType, overwrite: boolean): void {
+export interface ValidateUpdateArgsOptions {
+    overwrite: boolean;
+    isResolvedField?: (field: GraphQLField<any, any>) => boolean;
+}
+
+const defaultOptions: ValidateUpdateArgsOptions = {
+    overwrite: false,
+};
+
+export function validateUpdateArgs(updateArgs: UpdateArgs, graphQLType: GraphQLObjectType, options: ValidateUpdateArgsOptions = defaultOptions): void {
     let errors: string[] = [];
 
-    errors = errors.concat(validateNonNullableFieldsOuter(updateArgs, overwrite, graphQLType));
+    errors = errors.concat(validateNonNullableFieldsOuter(updateArgs, graphQLType, options));
 
     if (errors.length > 0) {
         throw new GraphQLError(errors.join("\n"));
     }
 }
 
-function validateNonNullableFieldsOuter(updateArgs: UpdateArgs, overwrite: boolean, graphQLType: GraphQLObjectType): string[] {
+function validateNonNullableFieldsOuter(
+    updateArgs: UpdateArgs,
+    graphQLType: GraphQLObjectType,
+    { overwrite, isResolvedField }: ValidateUpdateArgsOptions): string[] {
     const shouldAssert: ShouldAssert = !!updateArgs.setOnInsert
         ? ShouldAssert.True
         : overwrite
             ? ShouldAssert.DefaultTrueRoot
             : ShouldAssert.False;
 
-    return validateNonNullableFields(Object.keys(updateArgs).map(_ => updateArgs[_]), graphQLType, shouldAssert);
+    return validateNonNullableFields(Object.keys(updateArgs).map(_ => updateArgs[_]), graphQLType, shouldAssert, isResolvedField);
 }
 
-export function validateNonNullableFields(objects: object[], graphQLType: GraphQLObjectType, shouldAssert: ShouldAssert, path: string[] = []): string[] {
+export function validateNonNullableFields(
+    objects: object[],
+    graphQLType: GraphQLObjectType,
+    shouldAssert: ShouldAssert,
+    isResolvedField: ((field: GraphQLField<any, any>) => boolean) = (field: GraphQLField<any, any>) => !!field.resolve,
+    path: string[] = []): string[] {
     const typeFields = graphQLType.getFields();
 
     const errors: string[] = shouldAssert === ShouldAssert.True ? validateNonNullableFieldsAssert(objects, typeFields, path) : [];
@@ -41,7 +58,7 @@ export function validateNonNullableFields(objects: object[], graphQLType: GraphQ
     const overwrite = objects.map(_ => _[OVERWRITE]).filter(_ => _)[0];
     shouldAssert = getShouldAssert(shouldAssert, overwrite);
 
-    return [...errors, ...validateNonNullableFieldsTraverse(objects, typeFields, shouldAssert, path)];
+    return [...errors, ...validateNonNullableFieldsTraverse(objects, typeFields, shouldAssert, isResolvedField, path)];
 }
 
 export function validateNonNullableFieldsAssert(objects: object[], typeFields: GraphQLFieldMap<any, any>, path: string[] = []): string[] {
@@ -98,7 +115,12 @@ export function getShouldAssert(current: ShouldAssert, input?: boolean): ShouldA
     return current;
 }
 
-export function validateNonNullableFieldsTraverse(objects: object[], typeFields: GraphQLFieldMap<any, any>, shouldAssert: ShouldAssert, path: string[] = []): string[] {
+export function validateNonNullableFieldsTraverse(
+    objects: object[],
+    typeFields: GraphQLFieldMap<any, any>,
+    shouldAssert: ShouldAssert,
+    isResolvedField: (field: GraphQLField<any, any>) => boolean = (field: GraphQLField<any, any>) => !!field.resolve,
+    path: string[] = []): string[] {
     let keys: string[] = Array.from(new Set(flatten(objects.map(_ => Object.keys(_)))));
 
     return keys.reduce((agg, key) => {
@@ -106,7 +128,7 @@ export function validateNonNullableFieldsTraverse(objects: object[], typeFields:
         const type = field.type;
         const innerType = getInnerType(type);
 
-        if (!(innerType instanceof GraphQLObjectType) || field.resolve) {
+        if (!(innerType instanceof GraphQLObjectType) || isResolvedField(field)) {
             return agg;
         }
 
@@ -114,9 +136,9 @@ export function validateNonNullableFieldsTraverse(objects: object[], typeFields:
         const values = objects.map(_ => _[key]).filter(_ => _);
 
         if (isListField(type)) {
-            return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, ShouldAssert.True, newPath)))];
+            return [...agg, ...flatten(flattenListField(values, type).map(_ => validateNonNullableFields([_], innerType, ShouldAssert.True, isResolvedField, newPath)))];
         } else {
-            return [...agg, ...validateNonNullableFields(values, innerType, shouldAssert, newPath)];
+            return [...agg, ...validateNonNullableFields(values, innerType, shouldAssert, isResolvedField, newPath)];
         }
     }, []);
 }

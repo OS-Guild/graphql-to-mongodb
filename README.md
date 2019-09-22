@@ -1,7 +1,7 @@
 # graphql-to-mongodb 
 [![Build Status](https://travis-ci.org/Soluto/graphql-to-mongodb.svg?branch=master)](https://travis-ci.org/Soluto/graphql-to-mongodb)
 
-If you want to give your Nodejs GraphQL service a whole lot of the power of the MongoDb database you have standing behind it with very little hassle, you've come to the right place!
+If you want to grant your Nodejs GraphQL service a whole lot of the power of the MongoDb database standing behind it with very little hassle, you've come to the right place!
 
 ### [Examples](./examples)
 ### [Change Log](./CHANGELOG.md)
@@ -31,11 +31,11 @@ new GraphQLObjectType({
 ```
 #### An example GraphQL query supported by the package:
 
-Queries the first 50 persons, oldest first,  over the age of 18, and whose first name is John
+Queries the first 50 people, oldest first, over the age of 18, and whose first name is John.
 
 ```
 {
-    person (
+    people (
         filter: {
             age: { GT: 18 },
             name: { 
@@ -51,7 +51,7 @@ Queries the first 50 persons, oldest first,  over the age of 18, and whose first
 }
 ```
 
-**To implement, we'll define the peron query field in our GraphQL scheme like so:**
+**To implement, we'll define the people query field in our GraphQL scheme like so:**
 
 
 ```js
@@ -84,7 +84,7 @@ You'll notice that integrating the package takes little more than adding some fa
 
 **The following field is added to the schema (copied from graphiQl):**
 ```
-person(
+people(
     filter: PersonFilterType
     sort: PersonSortType
     pagination: GraphQLPaginationType

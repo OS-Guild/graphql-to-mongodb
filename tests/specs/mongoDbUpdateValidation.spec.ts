@@ -1,7 +1,7 @@
 import { ObjectType } from "../utils/types";
 import { validateUpdateArgs, validateNonNullableFields, validateNonNullableFieldsAssert, validateNonNullListField, validateNonNullableFieldsTraverse, flattenListField, ShouldAssert } from "../../src/mongoDbUpdateValidation";
 import { expect } from "chai";
-import { GraphQLObjectType, GraphQLType, GraphQLList, GraphQLNonNull, GraphQLString } from "graphql";
+import { GraphQLObjectType, GraphQLType, GraphQLList, GraphQLNonNull, GraphQLString, GraphQLField } from "graphql";
 import { UpdateArgs } from "../../src/mongoDbUpdate";
 
 describe("mongoDbUpdateValidation", () => {
@@ -59,7 +59,7 @@ describe("mongoDbUpdateValidation", () => {
 
             // Act
             try {
-                validateUpdateArgs(test.updateArgs, test.type, false);
+                validateUpdateArgs(test.updateArgs, test.type, { overwrite: false });
             } catch (err) {
                 error = err;
             }
@@ -256,7 +256,7 @@ describe("mongoDbUpdateValidation", () => {
     });
 
     describe("validateNonNullableFieldsTraverse", () => {
-        const tests: { description: string, objects: object[], type: GraphQLObjectType, path?: string[], expectedErrors: string[] }[] = [{
+        const tests: { description: string, objects: object[], type: GraphQLObjectType, path?: string[], isResolvedField?: (field: GraphQLField<any, any>) => boolean, expectedErrors: string[] }[] = [{
             description: 'Should invalidate field in nested object',
             type: ObjectType,
             objects: [{ nested: { nonNullList: [] } }, { nested: { stringScalar: "x" } }],
@@ -289,7 +289,7 @@ describe("mongoDbUpdateValidation", () => {
 
         tests.forEach(test => it(test.description, () => {
             // act
-            const errors = validateNonNullableFieldsTraverse(test.objects, test.type.getFields(), ShouldAssert.True, test.path);
+            const errors = validateNonNullableFieldsTraverse(test.objects, test.type.getFields(), ShouldAssert.True, test.isResolvedField, test.path);
 
             // Assert
             expect(errors).to.have.members(test.expectedErrors, "Should detect correct errors");
