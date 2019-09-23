@@ -1,6 +1,5 @@
-import { gql, IExecutableSchemaDefinition, IResolvers, makeExecutableSchema } from "apollo-server-express";
+import { gql, IExecutableSchemaDefinition, makeExecutableSchema } from "apollo-server-express";
 import {
-    GraphQLEnumValue,
     GraphQLInputObjectType,
     GraphQLInputType,
     GraphQLNamedType,
@@ -15,8 +14,6 @@ import { clearTypesCache, getTypesCache, GraphQLPaginationType, GraphQLSortType 
 import { MongoDirectivesContext, types as directiveTypes, visitors } from "./directives";
 
 export default function <TContext>(config: IExecutableSchemaDefinition<TContext>): GraphQLSchema {
-    config.resolvers = config.resolvers || {};
-
     clearTypesCache();
     MongoDirectivesContext.stage = "First";
 
@@ -40,27 +37,15 @@ export default function <TContext>(config: IExecutableSchemaDefinition<TContext>
 
     const typesSdl = gql(typesSdlRaw);
 
-    const cachedTypeKeys: string[] = Object.keys(typesCache);
-
-    for (const key of cachedTypeKeys) {
-        const enumType = typesCache[key];
-
-        if (!isEnumType(enumType)) {
-            continue;
-        }
-
-        config.resolvers[key] = enumType.getValues().reduce((resolver: IResolvers, value: GraphQLEnumValue) => {
-            resolver[value.name] = value.value;
-            return resolver;
-        }, {});
-    }
+    const enumResolvers = getEnumResolvers(typesCache);
 
     MongoDirectivesContext.stage = "Second";
 
     const stageTwoSchema = makeExecutableSchema({
         ...config,
         typeDefs: [...configTypeDefs, typesSdl, directiveTypes],
-        schemaDirectives: { ...config.schemaDirectives, ...visitors }
+        schemaDirectives: { ...config.schemaDirectives, ...visitors },
+        resolvers: { ...enumResolvers, ...config.resolvers }
     });
 
     return stageTwoSchema;
@@ -83,4 +68,16 @@ function innerType(type: GraphQLInputType): GraphQLInputType & GraphQLNamedType 
         return innerType(type.ofType);
     }
     return type;
+}
+
+function getEnumResolvers(typesCache: { [key: string]: GraphQLNamedType; }) {
+    return Object.keys(typesCache)
+        .map(_ => typesCache[_])
+        .filter(isEnumType)
+        .reduce((resolvers, enumType) => ({
+            ...resolvers,
+            [enumType.name]: enumType.getValues().reduce((resolver, entry) => ({
+                ...resolver, [entry.name]: entry.value
+            }), {})
+        }), {});
 }

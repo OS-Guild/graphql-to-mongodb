@@ -29,14 +29,14 @@ export const resolvers = {
     Person: {
         fullName: (source) => {
             return [source.name.first, source.name.last].filter(_ => !!_).join(' ');
-        } 
+        }
     },
     Query: {
-        people: async (filter, projection, options, obj, args, { db }: { db: Db }) => 
-           await db.collection('people').find(filter, { ...options, projection: {} }).toArray()
+        people: async (filter, projection, options, obj, args, { db }: { db: Db }) =>
+            await db.collection('people').find(filter, options).toArray()
     },
     Mutation: {
-        updatePeople: async (filter, update, options: { }, projection, obj, args, { db }: { db: Db }) => {
+        updatePeople: async (filter, update, options: {}, projection, obj, args, { db }: { db: Db }) => {
             const result = await db.collection('people').updateMany(filter, update, options);
             return result.modifiedCount;
         },

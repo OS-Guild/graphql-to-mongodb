@@ -1,7 +1,7 @@
 FROM node:10-alpine as dependencies
 
 WORKDIR /service
-COPY package.json yarn.lock ./
+COPY package.json ./
 RUN yarn
 
 COPY ./src ./src
