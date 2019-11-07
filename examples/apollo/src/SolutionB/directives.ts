@@ -1,5 +1,5 @@
 import { SchemaDirectiveVisitor, gql } from "apollo-server-express"
-import { GraphQLField, GraphQLObjectType, GraphQLArgument } from "graphql";
+import { GraphQLField, GraphQLObjectType, GraphQLArgument, GraphQLNamedType, isNonNullType, isListType, GraphQLOutputType, isObjectType } from "graphql";
 import { getGraphQLQueryArgs, getMongoDbQueryResolver, QueryOptions, getGraphQLUpdateArgs, getMongoDbUpdateResolver, UpdateOptions, getGraphQLInsertType, getGraphQLFilterType, getMongoDbFilter } from "graphql-to-mongodb";
 
 export const types = gql`
@@ -42,7 +42,11 @@ export class MongoQueryArgsVisitor extends SchemaDirectiveVisitor {
         let queryArgs = getGraphQLQueryArgs(graphqlType);
         const args: GraphQLArgument[] = Object.keys(queryArgs).map(key => ({
             name: key,
-            type: queryArgs[key].type
+            type: queryArgs[key].type,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
         }));
 
         field.args = [...field.args, ...args];
@@ -51,12 +55,19 @@ export class MongoQueryArgsVisitor extends SchemaDirectiveVisitor {
 
 export class MongoQueryResolverVisitor extends SchemaDirectiveVisitor {
     public visitFieldDefinition(field: GraphQLField<any, any>) {
-        const { type, queryOptions } = this.args as { type: string, queryOptions: QueryOptions }
+        const { type, queryOptions: queryOptionsArg } = this.args as { type: string, queryOptions: QueryOptions }
         const graphqlType = this.schema.getType(type);
 
         if (!(graphqlType instanceof GraphQLObjectType)) {
             throw `${this.name} directive requires type arg to be GraphQLObjectType`;
         }
+
+        const queryOptions = {
+            ...queryOptionsArg,
+            isResolvedField: field => !field[resolverless],
+            excludedFields: []
+        };
+        markResolverless(graphqlType);
 
         field.resolve = getMongoDbQueryResolver(graphqlType, field.resolve, queryOptions);
     }
@@ -74,7 +85,11 @@ export class MongoUpdateArgsVisitor extends SchemaDirectiveVisitor {
         let updateArgs = getGraphQLUpdateArgs(graphqlType);
         const args: GraphQLArgument[] = Object.keys(updateArgs).map(key => ({
             name: key,
-            type: updateArgs[key].type
+            type: updateArgs[key].type,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
         }));
 
         field.args = [...field.args, ...args];
@@ -83,12 +98,19 @@ export class MongoUpdateArgsVisitor extends SchemaDirectiveVisitor {
 
 export class MongoUpdateResolverVisitor extends SchemaDirectiveVisitor {
     public visitFieldDefinition(field: GraphQLField<any, any>) {
-        const { type, updateOptions } = this.args as { type: string, updateOptions: UpdateOptions }
+        const { type, updateOptions: updateOptionsArg } = this.args as { type: string, updateOptions: UpdateOptions }
         const graphqlType = this.schema.getType(type);
 
         if (!(graphqlType instanceof GraphQLObjectType)) {
             throw `${this.name} directive requires type arg to be GraphQLObjectType`;
         }
+
+        const updateOptions = {
+            ...updateOptionsArg,
+            isResolvedField: field => !field[resolverless],
+            excludedFields: []
+        };
+        markResolverless(graphqlType);
 
         field.resolve = getMongoDbUpdateResolver(graphqlType, field.resolve as any, updateOptions);
     }
@@ -104,7 +126,13 @@ export class MongoInsertArgsVisitor extends SchemaDirectiveVisitor {
         }
 
         const insertType = getGraphQLInsertType(graphqlType);
-        field.args = [...field.args, { name: key, type: insertType }];
+        field.args = [...field.args, {
+            name: key, type: insertType,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
+        }];
     }
 }
 
@@ -118,7 +146,13 @@ export class MongoFilterArgsVisitor extends SchemaDirectiveVisitor {
         }
 
         const filterType = getGraphQLFilterType(graphqlType);
-        field.args = [...field.args, { name: key, type: filterType }];
+        field.args = [...field.args, {
+            name: key, type: filterType,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
+        }];
     }
 }
 
@@ -150,3 +184,25 @@ export const visitors = {
     mongofilterArgs: MongoFilterArgsVisitor,
     mongoFilterResolver: MongoFilterResolverVisitor,
 };
+
+const resolverless = Symbol("resolverless");
+
+const markResolverless = (type: GraphQLObjectType) => {
+    const innerType = (type: GraphQLOutputType): GraphQLOutputType & GraphQLNamedType => {
+        if (isNonNullType(type) || isListType(type))
+            return innerType(type.ofType);
+        return type;
+    }
+
+    const fields = type.getFields();
+
+    Object.keys(fields).map(key => fields[key]).forEach(field => {
+        if (!!field.resolve) return;
+        if (field[resolverless] === true) return;
+        field[resolverless] = true;
+        const fieldType = innerType(field.type);
+        if (isObjectType(fieldType)) {
+            markResolverless(fieldType);
+        }
+    });
+}

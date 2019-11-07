@@ -10,14 +10,13 @@
   "dependencies": {
     "express": "^4.16.4",
     "express-graphql": "^0.7.1",
-    "graphql": "^14.0.2",
-    "graphql-to-mongodb": "1.6.1",
+    "graphql": "^14.2.1",
+    "graphql-to-mongodb": "1.6.5",
     "graphql-tools": "^4.0.3",
     "mongodb": "^3.1.10"
   },
   "devDependencies": {
     "@types/express-graphql": "^0.6.2",
-    "@types/graphql": "^14.0.3",
     "@types/mongodb": "^3.1.15",
     "ts-node": "^7.0.1",
     "typescript": "^3.2.2"

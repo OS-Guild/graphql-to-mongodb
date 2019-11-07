@@ -10,8 +10,8 @@
   "dependencies": {
     "apollo-server-express": "^2.2.0",
     "express": "^4.16.4",
-    "graphql": "^14.0.2",
-    "graphql-to-mongodb": "1.6.1",
+    "graphql": "^14.2.1",
+    "graphql-to-mongodb": "1.6.5",
     "mongodb": "^3.1.10"
   },
   "devDependencies": {
