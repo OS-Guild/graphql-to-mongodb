@@ -42,7 +42,11 @@ export class MongoQueryArgsVisitor extends SchemaDirectiveVisitor {
         let queryArgs = getGraphQLQueryArgs(graphqlType);
         const args: GraphQLArgument[] = Object.keys(queryArgs).map(key => ({
             name: key,
-            type: queryArgs[key].type
+            type: queryArgs[key].type,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
         }));
 
         field.args = [...field.args, ...args];
@@ -74,7 +78,11 @@ export class MongoUpdateArgsVisitor extends SchemaDirectiveVisitor {
         let updateArgs = getGraphQLUpdateArgs(graphqlType);
         const args: GraphQLArgument[] = Object.keys(updateArgs).map(key => ({
             name: key,
-            type: updateArgs[key].type
+            type: updateArgs[key].type,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
         }));
 
         field.args = [...field.args, ...args];
@@ -104,7 +112,13 @@ export class MongoInsertArgsVisitor extends SchemaDirectiveVisitor {
         }
 
         const insertType = getGraphQLInsertType(graphqlType);
-        field.args = [...field.args, { name: key, type: insertType }];
+        field.args = [...field.args, {
+            name: key, type: insertType,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
+        }];
     }
 }
 
@@ -118,7 +132,13 @@ export class MongoFilterArgsVisitor extends SchemaDirectiveVisitor {
         }
 
         const filterType = getGraphQLFilterType(graphqlType);
-        field.args = [...field.args, { name: key, type: filterType }];
+        field.args = [...field.args, {
+            name: key, type: filterType,
+            description: undefined,
+            defaultValue: undefined,
+            extensions: undefined,
+            astNode: undefined
+        }];
     }
 }
 
@@ -147,6 +167,6 @@ export const visitors = {
     mongoUpdateArgs: MongoUpdateArgsVisitor,
     mongoUpdateResolver: MongoUpdateResolverVisitor,
     mongoInsertArgs: MongoInsertArgsVisitor,
-    mongofilterArgs: MongoFilterArgsVisitor,
+    mongoFilterArgs: MongoFilterArgsVisitor,
     mongoFilterResolver: MongoFilterResolverVisitor,
 };

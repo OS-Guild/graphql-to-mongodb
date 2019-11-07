@@ -51,10 +51,14 @@ export class MongoQueryArgsVisitor extends SchemaDirectiveVisitor {
             let queryArgs = getGraphQLQueryArgs(graphqlType);
             const args: GraphQLArgument[] = Object.keys(queryArgs).map(key => ({
                 name: key,
-                type: this.schema.getType(queryArgs[key].type.name) as GraphQLInputType
+                type: this.schema.getType(queryArgs[key].type.name) as GraphQLInputType,
+                description: undefined,
+                defaultValue: undefined,
+                extensions: undefined,
+                astNode: undefined
             }));
-            
-            field.args = [ ...field.args, ...args ];
+
+            field.args = [...field.args, ...args];
         }
     }
 }
@@ -67,7 +71,7 @@ export class MongoQueryResolverVisitor extends SchemaDirectiveVisitor {
         if (!(graphqlType instanceof GraphQLObjectType)) {
             throw `${this.name} directive requires type arg to be GraphQLObjectType`;
         }
-        
+
         if (MongoDirectivesContext.stage === "Second") {
             field.resolve = getMongoDbQueryResolver(graphqlType, field.resolve, queryOptions);
         }
@@ -91,10 +95,14 @@ export class MongoUpdateArgsVisitor extends SchemaDirectiveVisitor {
             let updateArgs = getGraphQLUpdateArgs(graphqlType);
             const args: GraphQLArgument[] = Object.keys(updateArgs).map(key => ({
                 name: key,
-                type: this.schema.getType(updateArgs[key].type.ofType.name) as GraphQLInputType
+                type: this.schema.getType(updateArgs[key].type.ofType.name) as GraphQLInputType,
+                description: undefined,
+                defaultValue: undefined,
+                extensions: undefined,
+                astNode: undefined
             }));
-            
-            field.args = [ ...field.args, ...args ];
+
+            field.args = [...field.args, ...args];
         }
     }
 }
@@ -107,7 +115,7 @@ export class MongoUpdateResolverVisitor extends SchemaDirectiveVisitor {
         if (!(graphqlType instanceof GraphQLObjectType)) {
             throw `${this.name} directive requires type arg to be GraphQLObjectType`;
         }
-        
+
         if (MongoDirectivesContext.stage === "Second") {
             field.resolve = getMongoDbUpdateResolver(graphqlType, field.resolve as any, updateOptions);
         }
@@ -129,7 +137,13 @@ export class MongoInsertArgsVisitor extends SchemaDirectiveVisitor {
 
         if (MongoDirectivesContext.stage === "Second") {
             const insertType = getGraphQLInsertType(graphqlType);
-            field.args = [ ...field.args, { name: key, type: this.schema.getType(insertType.name) as GraphQLInputType } ];
+            field.args = [...field.args, {
+                name: key, type: this.schema.getType(insertType.name) as GraphQLInputType,
+                description: undefined,
+                defaultValue: undefined,
+                extensions: undefined,
+                astNode: undefined
+            }];
         }
     }
 }
@@ -149,7 +163,13 @@ export class MongoFilterArgsVisitor extends SchemaDirectiveVisitor {
 
         if (MongoDirectivesContext.stage === "Second") {
             const filterType = getGraphQLFilterType(graphqlType);
-            field.args = [ ...field.args, { name: key, type: this.schema.getType(filterType.name) as GraphQLInputType } ];
+            field.args = [...field.args, {
+                name: key, type: this.schema.getType(filterType.name) as GraphQLInputType,
+                description: undefined,
+                defaultValue: undefined,
+                extensions: undefined,
+                astNode: undefined
+            }];
         };
     }
 }
