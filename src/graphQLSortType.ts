@@ -1,4 +1,4 @@
-import { GraphQLInputObjectType, GraphQLEnumType, GraphQLNonNull, GraphQLObjectType, GraphQLInputType, GraphQLType, isLeafType, GraphQLInterfaceType } from 'graphql';
+import { GraphQLInputObjectType, GraphQLEnumType, GraphQLNonNull, GraphQLObjectType, GraphQLInputType, GraphQLType, isLeafType, GraphQLInterfaceType,GraphQLList } from 'graphql';
 import { cache, setSuffix, getUnresolvedFieldsTypes, typesCache, FieldMap, GraphQLFieldsType } from './common';
 
 export const FICTIVE_SORT = "_FICTIVE_SORT";
@@ -16,6 +16,10 @@ function getGraphQLSortTypeObject(type: GraphQLType, ...excludedFields): GraphQL
     if (type instanceof GraphQLObjectType ||
         type instanceof GraphQLInterfaceType) {
         return getGraphQLSortType(type, ...excludedFields);
+    }
+
+    if(type instanceof GraphQLList) {
+        return GraphQLSortType;
     }
     
     return undefined;
