@@ -1,13 +1,13 @@
 # graphql-to-mongodb 
 [![Build Status](https://travis-ci.org/Soluto/graphql-to-mongodb.svg?branch=master)](https://travis-ci.org/Soluto/graphql-to-mongodb)
 
-If you want to grant your Nodejs GraphQL service a whole lot of the power of the MongoDb database standing behind it with very little hassle, you've come to the right place!
+If you want to grant your NodeJS GraphQL service a whole lot of the power of the MongoDB database standing behind it with very little hassle, you've come to the right place!
 
 ### [Examples](./examples)
 ### [Change Log](./CHANGELOG.md)
 ### [Blog Post](https://blog.solutotlv.com/graphql-to-mongodb-or-how-i-learned-to-stop-worrying-and-love-generated-query-apis/?utm_source=README)
 
-### Lets take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
+### Let's take a look at the most common use case, ```getMongoDbQueryResolver``` and ```getGraphQLQueryArgs```:
 
 **Given a simple GraphQL type:**
 ```js
@@ -64,7 +64,7 @@ people: {
         })
 }
 ```
-You'll notice that integrating the package takes little more than adding some fancy middleware over the resolve function.  The `filter, projection, options` added as the first paraneters of the callback, can be sent directly to the MongoDB find function as shown. The rest of the parameter are the standard recieved from the GraphQL api. 
+You'll notice that integrating the package takes little more than adding some fancy middleware over the resolve function.  The `filter, projection, options` added as the first parameters of the callback, can be sent directly to the MongoDB find function as shown. The rest of the parameter are the standard received from the GraphQL api. 
 
 * Additionally, resolve fields' dependencies should be defined in the GraphQL type like so:
     ```js 
@@ -74,7 +74,7 @@ You'll notice that integrating the package takes little more than adding some fa
         dependencies: ['name'] // or ['name.first', 'name.Last'], whatever tickles your fancy
     }
     ```
-    This is needed to ensure that the projection does not omit any neccessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
+    This is needed to ensure that the projection does not omit any necessary fields. Alternatively, if throughput is of no concern, the projection can be replaced with an empty object.
 *  As of `mongodb` package version 3.0, you should implement the resolve callback as:
    ```js
    return await context.db.collection('people').find(filter, options).toArray();
@@ -107,7 +107,7 @@ first: StringFilter
 last: StringFilter
 opr: OprExists
 ```
-`OprExists` enum tyoe can be `EXISTS` or `NOT_EXISTS`, and can be found in nested objects and arrays
+`OprExists` enum type can be `EXISTS` or `NOT_EXISTS`, and can be found in nested objects and arrays
 
 **StringFilter:**
 ```
