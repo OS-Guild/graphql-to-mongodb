@@ -32,6 +32,10 @@ type GraphQLLeafFilter = GraphQLLeafFilterInner & {
     values?: any[];
 };
 
+function isLeafTypeTypeGuard(fieldFilter: GraphQLObjectFilter | GraphQLLeafFilter, fieldType: GraphQLObjectType | GraphQLLeafType): fieldFilter is GraphQLLeafFilter {
+    return isLeafType(fieldType);
+}
+
 export type MongoDbFilter = {
     [key: string]: MongoDbLeafFilter | { $elemMatch: MongoDbObjectFilter } | { $exists?: boolean } | MongoDbFilter[];
     $or?: MongoDbFilter[];
@@ -98,8 +102,8 @@ function parseMongoDbFilter(type: GraphQLFieldsType, graphQLFilter: GraphQLObjec
             const fieldFilter = graphQLFilter[key] as GraphQLObjectFilter | GraphQLLeafFilter;
             const fieldType = getInnerType(typeFields[key].type) as GraphQLLeafType | GraphQLObjectType;
 
-            if (isLeafType(fieldType)) {
-                const leafFilter = parseMongoDbLeafFilter(fieldFilter as GraphQLLeafFilter);
+            if (isLeafTypeTypeGuard(fieldFilter, fieldType)) {
+                const leafFilter = parseMongoDbLeafFilter(fieldFilter);
 
                 if (Object.keys(leafFilter).length > 0) {
                     return { ...agg, [key]: leafFilter };
