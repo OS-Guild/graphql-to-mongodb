@@ -1,6 +1,6 @@
 # Contributing to Graphql-To-Mongodb
 
-Welcome, and thank you for your interest in contributing to Graphql-To-Mongodb!
+Welcome, and thank you for your interest in contributing to GraphQL to MongoDB!
 
 There are many ways in which you can contribute, beyond writing code. The goal of this document is to provide a high-level overview of how you can get involved.
 
@@ -19,7 +19,7 @@ Your comments and feedback are welcome, and the development team is available vi
 
 ## Reporting Issues
 
-Have you identified a reproducible problem in Graphql-To-Mongodb? Have a feature request? We want to hear about it! Here's how you can make reporting your issue as effective as possible.
+Have you identified a reproducible problem in GraphQL to MongoDB? Have a feature request? We want to hear about it! Here's how you can make reporting your issue as effective as possible.
 
 ### Look For an Existing Issue
 
@@ -56,7 +56,7 @@ Don't feel bad if the developers can't reproduce the issue right away. They will
 
 ## Contributing Fixes
 
-There are many ways to contribute to the Graphql-To-Mongodb project: logging bugs, submitting pull requests, reporting issues, and creating suggestions.
+There are many ways to contribute to the GraphQL to MongoDB project: logging bugs, submitting pull requests, reporting issues, and creating suggestions.
 
 After cloning and building the repo, check out the issues list. Issues labeled `help wanted` are good issues to submit a PR for. Issues labeled `good first issue` are great candidates to pick up if you are in the code for the first time. If you are contributing significant changes, or if the issue is already assigned to a specific month milestone, please discuss with the issue assignee first before starting to work on the issue
 
