@@ -120,6 +120,8 @@ LTE: String
 NEQ: String
 NIN: [String]
 NOT: [StringFNotilter]
+REGEX: [String]
+OPTIONS: String (ignored if not paired with REGEX)
 ```
 
 **PersonSortType:**
